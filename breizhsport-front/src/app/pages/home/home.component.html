@@ -1,0 +1,7 @@
+<h1>Bienvenue sur Breizhsport</h1>
+<p>Découvrez nos catégories de produits sportifs !</p>
+<ul>
+  <li *ngFor="let category of categories">
+    <a [routerLink]="'/category/' + category.id">{{ category.name }}</a>
+  </li>
+</ul>
