@@ -1,7 +1,7 @@
-
-  <button class="back-button" (click)="goBack()">Retour</button>
-  <div class="product-container">
+<button class="back-button" (click)="goBack()">Retour</button>
+<div class="product-container">
   <h1>{{ product.name }}</h1>
+  <img [src]="product.image" [alt]="product.name" class="product-image" />
   <p>{{ product.description }}</p>
   <p>Prix : {{ product.price }}€</p>
   <button (click)="addToCart()">Ajouter au panier</button>
