@@ -1,0 +1,31 @@
+/* Applique un layout flex au corps de la page */
+html, body {
+    height: 100%; /* Assure que le corps occupe toute la hauteur de la fenêtre */
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Organise les éléments en colonne */
+  }
+  
+  /* Le conteneur principal */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Assure que le conteneur principal prend toute la hauteur */
+  }
+  
+  /* Section principale (main) */
+  .main-content {
+    flex: 1; /* Étend le main pour remplir l'espace disponible */
+    padding: 20px; /* Ajoute une marge interne pour le contenu */
+  }
+  
+  /* Footer collé en bas */
+  footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    margin-top: auto; /* Pousse le footer vers le bas */
+  }
+  

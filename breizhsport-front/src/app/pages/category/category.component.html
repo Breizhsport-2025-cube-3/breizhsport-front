@@ -1,27 +1,29 @@
 <button class="back-button" (click)="goBack()">Retour</button>
 
-<h1>Produits de la catégorie</h1>
+<div class="category-container">
+  <h1>Produits de la catégorie</h1>
 
-<div class="filters">
-  <label>
-    Prix maximum :
-    <input type="number" [(ngModel)]="maxPrice" (input)="applyFilters()" />
-  </label>
-  <label>
-    Rechercher :
-    <input
-      type="text"
-      [(ngModel)]="searchQuery"
-      (input)="applyFilters()"
-      placeholder="Rechercher un produit..."
-    />
-  </label>
-</div>
+  <div class="filters">
+    <label>
+      Prix maximum :
+      <input type="number" [(ngModel)]="maxPrice" (input)="applyFilters()" />
+    </label>
 
-<div class="sorting">
-  <button (click)="sortProducts('asc')">Prix croissant</button>
-  <button (click)="sortProducts('desc')">Prix décroissant</button>
-</div>
+    <label>
+      Rechercher :
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="applyFilters()"
+        placeholder="Rechercher un produit..."
+      />
+    </label>
+  </div>
+
+  <div class="sorting">
+    <button (click)="sortProducts('asc')">Prix croissant</button>
+    <button (click)="sortProducts('desc')">Prix décroissant</button>
+  </div>
 
 <div class="product-grid">
     <div class="product-card" *ngFor="let product of paginatedProducts">

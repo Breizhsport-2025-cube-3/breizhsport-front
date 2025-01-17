@@ -1,37 +1,59 @@
+.checkout-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  text-align: center;
+  padding: 20px;
+  background-color: #f4f4f9;
+}
+
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
   
-  .checkout-items {
-    list-style: none;
-    padding: 0;
-  }
+.checkout-items {
+  list-style: none;
+  padding: 0;
+  width: 100%; /* S'assure que la liste occupe toute la largeur disponible */
+  max-width: 600px; /* Limite la largeur pour une meilleure lisibilité */
+}
+
+.checkout-items li {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
   
-  .checkout-items li {
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-  }
-  
-  .total {
-    text-align: right;
-    font-size: 18px;
-    margin-top: 20px;
-  }
-  
-  button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
+.total {
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+/* Bouton de validation */
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Message panier vide */
+.empty-cart {
+  font-size: 18px;
+  color: #666;
+  margin-top: 20px;
+}
   

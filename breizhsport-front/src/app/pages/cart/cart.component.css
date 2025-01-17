@@ -91,6 +91,24 @@ button {
     font-size: 18px;
     text-align: right;
   }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    color: #333;
+  }
+
+  .cart-container {
+    text-align: center; 
+    margin: 0 auto;
+  }
+
+  p {
+    font-size: 18px;
+    color: #666;
+    margin-top: 20px;
+  }
   
 
   

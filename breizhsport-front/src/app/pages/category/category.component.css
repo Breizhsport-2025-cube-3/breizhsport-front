@@ -1,19 +1,18 @@
 .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
   
-  .product-card {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    background-color: #fff;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
+.product-card {
+  padding: 15px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
   
   .product-card:hover {
     transform: translateY(-5px);
@@ -42,32 +41,37 @@
   }
 
   .pagination {
-    margin-top: 20px;
-    text-align: center;
+    display: flex;
+    justify-content: center; /* Centre horizontalement */
+    gap: 10px; /* Espacement entre les boutons */
+    margin-top: 20px; /* Marge pour espacer de l'élément précédent */
   }
   
   .pagination button {
-    margin: 0 5px;
-    padding: 5px 10px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
   }
   
   .pagination button.active {
-    background-color: #0056b3;
-    font-weight: bold;
+    background-color: #0056b3; /* Couleur différente pour le bouton actif */
   }
   
   .pagination button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Couleur au survol */
   }
+  
   
   .back-button {
     display: inline-block;
     margin-bottom: 20px;
+    margin-left: 20px;
+    margin-top: 20px;
     padding: 10px 15px;
     background-color: #007bff;
     color: white;
@@ -107,5 +111,41 @@
 .product-card button {
   margin-top: 10px;
 }
+
+.category-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centre horizontalement */
+  justify-content: center; /* Centre verticalement */
+   /* Assure que le conteneur occupe toute la hauteur de la page */
+  padding: 20px;
+  background-color: #f4f4f9;
+}
+
+/* Titre */
+.category-container h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Espacement entre les éléments */
+  margin-bottom: 20px;
+}
+
+.filters label {
+  font-size: 16px;
+}
+
+.sorting {
+  display: flex;
+  gap: 10px; /* Espacement entre les boutons */
+  margin-bottom: 20px;
+}
+
 
   

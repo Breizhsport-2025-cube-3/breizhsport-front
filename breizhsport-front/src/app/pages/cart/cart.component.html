@@ -1,8 +1,10 @@
-<h1>Mon Panier</h1>
+<div class="cart-container">
+  <h1>Mon Panier</h1>
 
-<div *ngIf="cartItems.length === 0">
-  <p>Votre panier est vide.</p>
-</div>
+  <div *ngIf="cartItems.length === 0">
+    <p>Votre panier est vide.</p>
+  </div>
+</div>  
 
 <table *ngIf="cartItems.length > 0" class="table">
   <thead>

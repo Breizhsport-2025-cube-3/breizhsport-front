@@ -1,19 +1,21 @@
-<h1>Validation de la commande</h1>
+<div class="checkout-container">
+  <h1>Validation de la commande</h1>
 
-<div *ngIf="cartItems.length === 0" class="empty-cart">
-  Votre panier est vide.
-</div>
+  <div *ngIf="cartItems.length === 0" class="empty-cart">
+    Votre panier est vide.
+  </div>
 
-<div *ngIf="cartItems.length > 0">
-  <ul class="checkout-items">
-    <li *ngFor="let item of cartItems">
-      <strong>{{ item.name }}</strong> - {{ item.price }}€ (Quantité : {{ item.quantity }})
-    </li>
-  </ul>
+  <div *ngIf="cartItems.length > 0">
+    <ul class="checkout-items">
+      <li *ngFor="let item of cartItems">
+        <strong>{{ item.name }}</strong> - {{ item.price }}€ (Quantité : {{ item.quantity }})
+      </li>
+    </ul>
 
-  <p class="total">
-    Total : <strong>{{ total }}€</strong>
-  </p>
+    <p class="total">
+      Total : <strong>{{ total }}€</strong>
+    </p>
 
-  <button (click)="confirmOrder()">Valider la commande</button>
+    <button (click)="confirmOrder()">Valider la commande</button>
+  </div>
 </div>

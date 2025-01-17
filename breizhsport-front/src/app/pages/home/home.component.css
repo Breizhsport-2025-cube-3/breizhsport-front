@@ -1,17 +1,49 @@
+/* Conteneur principal */
+.home-container {
+  text-align: center; /* Centre horizontalement le texte */
+  margin: 0 auto;
+  padding: 20px; /* Ajoute un peu d'espace autour du contenu */
+}
+
+/* Style pour le titre */
+h1 {
+  font-size: 32px;
+  color: #333;
+  margin-bottom: 10px; /* Espacement entre le titre et le paragraphe */
+}
+
+/* Style pour le paragraphe */
+p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px; /* Espacement entre le paragraphe et la liste */
+}
+
+/* Style pour la liste */
 ul {
-    padding: 10px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-  }
-  
-  li {
-    margin-bottom: 10px;
-    padding: 5px;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  li:last-child {
-    border-bottom: none;
-  }
-  
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  max-width: 600px; /* Limite la largeur pour une meilleure lisibilité */
+  margin: 0 auto; /* Centre la liste horizontalement */
+}
+
+li {
+  margin-bottom: 10px;
+  padding: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
