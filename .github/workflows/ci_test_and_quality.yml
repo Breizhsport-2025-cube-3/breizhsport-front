@@ -31,16 +31,16 @@ jobs:
           rm -rf node_modules
           rm -f package-lock.json
 
-      # Étape 4 : Installation de Cypress (sans exécution des tests)
+      # Étape 4 : Installation des dépendances
+      - name: Install Dependencies
+        run: npm install
+
+      # Étape 5 : Installation de Cypress (sans exécution des tests)
       - name: Cypress E2E Install
         uses: cypress-io/github-action@v6
         with:
           runTests: false
           working-directory: breizhsport-front
-
-      # Étape 5 : Installation des dépendances
-      - name: Install Dependencies
-        run: npm install
 
       # Étape 6 : Démarrer le serveur Angular en arrière-plan
       - name: Start Angular Server
