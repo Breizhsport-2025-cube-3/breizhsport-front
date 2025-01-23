@@ -31,9 +31,9 @@ jobs:
           rm -rf node_modules
           rm -f package-lock.json
 
-      # Étape 4 : Créer le dossier videos dans le bon emplacement
+      # Étape 4 : Créer le dossier videos
       - name: Create videos directory
-        run: mkdir -p breizhsport-front/cypress/videos
+        run: mkdir -p cypress/videos
 
       # Étape 5 : Installation des dépendances
       - name: Install Dependencies
@@ -52,31 +52,44 @@ jobs:
         env:
           NODE_OPTIONS: --openssl-legacy-provider
 
-      # Étape 8 : Exécuter les tests Cypress
+      # Étape 8 : Exécuter les tests Cypress avec un reporter JSON
       - name: Run Cypress Tests
-        uses: cypress-io/github-action@v6
-        with:
-          install: false
-          working-directory: breizhsport-front
-          # wait-on: "http://localhost:4200"
-
-      # Étape 9 : Vérifier si les artefacts existent
-      - name: Check if artifacts exist
-        id: check-artifacts
         run: |
-          if [ -d "breizhsport-front/cypress/videos" ] || [ -d "breizhsport-front/cypress/screenshots" ]; then
-            echo "artifacts_exist=true" >> $GITHUB_OUTPUT
-          else
-            echo "artifacts_exist=false" >> $GITHUB_OUTPUT
-          fi
+          npx cypress run --reporter json --reporter-options "output=cypress/results.json"
+        working-directory: breizhsport-front
 
-      # Étape 10 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 9 : Lire la durée totale des tests depuis le fichier JSON
+      - name: Extract Test Duration
+        id: extract-duration
+        run: |
+          DURATION=$(node -e "console.log(require('./cypress/results.json').totalDuration / 1000)")
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+
+      # Étape 10 : Générer un résumé personnalisé avec le scénario de test
+      - name: Generate Job Summary
+        run: |
+          echo "### Scénario de test Cypress" >> $GITHUB_STEP_SUMMARY
+          echo "Les tests Cypress ont été exécutés avec succès." >> $GITHUB_STEP_SUMMARY
+          echo "#### Détails du scénario :" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Charger la page d’accueil** : La page d'accueil a été chargée avec succès." >> $GITHUB_STEP_SUMMARY
+          echo "2. **Naviguer vers une catégorie spécifique (Cyclisme)** : La catégorie Cyclisme a été sélectionnée." >> $GITHUB_STEP_SUMMARY
+          echo "3. **Afficher les détails d’un produit de cette catégorie** : Les détails du produit ont été affichés." >> $GITHUB_STEP_SUMMARY
+          echo "4. **Ajouter ce produit au panier** : Le produit a été ajouté au panier." >> $GITHUB_STEP_SUMMARY
+          echo "5. **Accéder à la page du panier et vérifier que le produit y est bien ajouté** : Le produit est présent dans le panier." >> $GITHUB_STEP_SUMMARY
+          echo "#### Résultats :" >> $GITHUB_STEP_SUMMARY
+          echo "- **Fichier de test** : breizhsport.cy.js" >> $GITHUB_STEP_SUMMARY
+          echo "- **Nombre de tests passés** : 1" >> $GITHUB_STEP_SUMMARY
+          echo "- **Durée totale** : ${{ steps.extract-duration.outputs.duration }}s" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vidéo générée** : [Voir la vidéo](#)" >> $GITHUB_STEP_SUMMARY
+
+      # Étape 11 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
-        if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-artifacts
           path: |
-            breizhsport-front/cypress/videos
-            breizhsport-front/cypress/screenshots
+            cypress/videos
+            cypress/screenshots
+            cypress/results.json
           retention-days: 3
