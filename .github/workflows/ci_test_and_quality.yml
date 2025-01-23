@@ -10,7 +10,7 @@ on:
 
 jobs:
   cypress-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04 # Utilisez une version spécifique pour éviter l'avertissement
     defaults:
       run:
         working-directory: breizhsport-front
@@ -56,9 +56,19 @@ jobs:
           working-directory: breizhsport-front
           wait-on: "http://localhost:4200" # Attendre que le serveur Angular soit prêt
 
-      # Étape 8 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 8 : Vérifier si les artefacts existent
+      - name: Check if artifacts exist
+        id: check-artifacts
+        run: |
+          if [ -d "cypress/videos" ] || [ -d "cypress/screenshots" ]; then
+            echo "artifacts_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "artifacts_exist=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Étape 9 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
-        if: always() # Téléverse les artefacts même si les tests échouent
+        if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cypress-artifacts
