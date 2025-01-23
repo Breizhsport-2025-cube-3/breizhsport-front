@@ -25,13 +25,22 @@ jobs:
         with:
           node-version: 20.x
 
+      - name: Cypress E2E Install
+        uses: cypress-io/github-action@v6
+        with:
+            runTests: false
+            working-directory: breizhsport-front
+
       # Étape 3 : Installation des dépendances
       - name: Install Dependencies
         run: npm install
 
-      # Étape 4 : Exécution des tests Cypress
-      - name: Run Cypress Tests
-        run: npx cypress run
+      - name: Start E2E Test
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          working-directory: breizhsport-front
+          start: npm run dev
 
       # Étape 5 (Optionnelle) : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
