@@ -40,7 +40,7 @@ jobs:
         with:
           install: false
           working-directory: breizhsport-front
-          start: npm run dev
+          start: npx ng serve
 
       # Étape 5 (Optionnelle) : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
