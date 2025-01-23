@@ -1,0 +1,73 @@
+name: Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Backend:
+    if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.head.ref, '#cesi') }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MARIADB_ROOT_PASSWORD: toor
+          MARIADB_DATABASE: test
+          MARIADB_USER: test
+          MARIADB_PASSWORD: test
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      BDD_HOST: 127.0.0.1
+      BDD_NAME: test
+      BDD_USER: test
+      BDD_PASS: test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Check Database Cnx
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql --host 127.0.0.1 --port 3306 -u root -ptoor -e "SHOW DATABASES"
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x  
+
+      - name: Just for joke
+        run: |
+          node -v
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Init BDD
+        run: npm run initbdd
+
+      - name: Populate BDD
+        run: |
+          mysql -u root -ptoor --host 127.0.0.1 --port 3306 --database test < ./test/insert_test_user.sql
+
+      - name: Run all Test And Coverage
+        run: npm run test:cov
+
+      - name: Upload Coverage Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-repport
+          path: backend/coverage
+          retention-days: 3 
