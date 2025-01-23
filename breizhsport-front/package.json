@@ -2,15 +2,15 @@
   "name": "breizhsport-front",
   "version": "0.0.0",
   "scripts": {
-  "ng": "ng",
-  "start": "ng serve",
-  "build": "ng build",
-  "watch": "ng build --watch --configuration development",
-  "test": "ng test",
-  "serve:ssr:breizhsport-front": "node dist/breizhsport-front/server/server.mjs",
-  "cypress:open": "cypress open",
-  "cypress:run": "cypress run"
-},
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:breizhsport-front": "node dist/breizhsport-front/server/server.mjs",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
+  },
   "private": true,
   "dependencies": {
     "@angular/animations": "^19.0.0",
