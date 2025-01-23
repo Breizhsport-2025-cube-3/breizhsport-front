@@ -11,7 +11,9 @@ on:
 jobs:
   cypress-tests:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: breizhsport-front
     steps:
       # Étape 1 : Checkout du code
       - name: Checkout Code
