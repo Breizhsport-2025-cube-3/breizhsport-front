@@ -25,24 +25,38 @@ jobs:
         with:
           node-version: 20.x
 
+      # Étape 3 : Nettoyer node_modules et package-lock.json
+      - name: Clean Node Modules
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
+      # Étape 4 : Installation de Cypress (sans exécution des tests)
       - name: Cypress E2E Install
         uses: cypress-io/github-action@v6
         with:
-            runTests: false
-            working-directory: breizhsport-front
+          runTests: false
+          working-directory: breizhsport-front
 
-      # Étape 3 : Installation des dépendances
+      # Étape 5 : Installation des dépendances
       - name: Install Dependencies
         run: npm install
 
-      - name: Start E2E Test
+      # Étape 6 : Démarrer le serveur Angular en arrière-plan
+      - name: Start Angular Server
+        run: npx ng serve &
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider # Option pour éviter les erreurs OpenSSL
+
+      # Étape 7 : Exécuter les tests Cypress
+      - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           install: false
           working-directory: breizhsport-front
-          start: npx ng serve
+          wait-on: "http://localhost:4200" # Attendre que le serveur Angular soit prêt
 
-      # Étape 5 (Optionnelle) : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 8 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
         if: always() # Téléverse les artefacts même si les tests échouent
         uses: actions/upload-artifact@v4
