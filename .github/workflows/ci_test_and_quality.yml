@@ -58,7 +58,7 @@ jobs:
         with:
           install: false
           working-directory: breizhsport-front
-          wait-on: "http://localhost:4200"
+          # wait-on: "http://localhost:4200"
 
       # Étape 9 : Vérifier si les artefacts existent
       - name: Check if artifacts exist
