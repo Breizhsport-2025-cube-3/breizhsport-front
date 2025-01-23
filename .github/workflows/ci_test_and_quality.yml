@@ -31,9 +31,9 @@ jobs:
           rm -rf node_modules
           rm -f package-lock.json
 
-      # Étape 4 : Créer le dossier videos
+      # Étape 4 : Créer le dossier videos dans le bon emplacement
       - name: Create videos directory
-        run: mkdir -p cypress/videos
+        run: mkdir -p breizhsport-front/cypress/videos
 
       # Étape 5 : Installation des dépendances
       - name: Install Dependencies
@@ -46,50 +46,31 @@ jobs:
           runTests: false
           working-directory: breizhsport-front
 
-      # Étape 7 : Démarrer le serveur Angular en arrière-plan
-      - name: Start Angular Server
-        run: npx ng serve &
-        env:
-          NODE_OPTIONS: --openssl-legacy-provider
-
-      # Étape 8 : Exécuter les tests Cypress avec un reporter JSON
+      # Étape 7 : Exécuter les tests Cypress
       - name: Run Cypress Tests
-        run: |
-          npx cypress run --reporter json --reporter-options "output=cypress/results.json"
-        working-directory: breizhsport-front
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          working-directory: breizhsport-front
+          # wait-on: "http://localhost:4200"
 
-      # Étape 9 : Lire la durée totale des tests depuis le fichier JSON
-      - name: Extract Test Duration
-        id: extract-duration
+      # Étape 8 : Vérifier si les artefacts existent
+      - name: Check if artifacts exist
+        id: check-artifacts
         run: |
-          DURATION=$(node -e "console.log(require('./cypress/results.json').totalDuration / 1000)")
-          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          if [ -d "breizhsport-front/cypress/videos" ] || [ -d "breizhsport-front/cypress/screenshots" ]; then
+            echo "artifacts_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "artifacts_exist=false" >> $GITHUB_OUTPUT
+          fi
 
-      # Étape 10 : Générer un résumé personnalisé avec le scénario de test
-      - name: Generate Job Summary
-        run: |
-          echo "### Scénario de test Cypress" >> $GITHUB_STEP_SUMMARY
-          echo "Les tests Cypress ont été exécutés avec succès." >> $GITHUB_STEP_SUMMARY
-          echo "#### Détails du scénario :" >> $GITHUB_STEP_SUMMARY
-          echo "1. **Charger la page d’accueil** : La page d'accueil a été chargée avec succès." >> $GITHUB_STEP_SUMMARY
-          echo "2. **Naviguer vers une catégorie spécifique (Cyclisme)** : La catégorie Cyclisme a été sélectionnée." >> $GITHUB_STEP_SUMMARY
-          echo "3. **Afficher les détails d’un produit de cette catégorie** : Les détails du produit ont été affichés." >> $GITHUB_STEP_SUMMARY
-          echo "4. **Ajouter ce produit au panier** : Le produit a été ajouté au panier." >> $GITHUB_STEP_SUMMARY
-          echo "5. **Accéder à la page du panier et vérifier que le produit y est bien ajouté** : Le produit est présent dans le panier." >> $GITHUB_STEP_SUMMARY
-          echo "#### Résultats :" >> $GITHUB_STEP_SUMMARY
-          echo "- **Fichier de test** : breizhsport.cy.js" >> $GITHUB_STEP_SUMMARY
-          echo "- **Nombre de tests passés** : 1" >> $GITHUB_STEP_SUMMARY
-          echo "- **Durée totale** : ${{ steps.extract-duration.outputs.duration }}s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Vidéo générée** : [Voir la vidéo](#)" >> $GITHUB_STEP_SUMMARY
-
-      # Étape 11 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 9 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
-        if: always()
+        if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cypress-artifacts
           path: |
-            cypress/videos
-            cypress/screenshots
-            cypress/results.json
+            breizhsport-front/cypress/videos
+            breizhsport-front/cypress/screenshots
           retention-days: 3
