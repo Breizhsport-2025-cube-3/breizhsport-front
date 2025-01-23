@@ -46,7 +46,13 @@ jobs:
           runTests: false
           working-directory: breizhsport-front
 
-      # Étape 7 : Exécuter les tests Cypress
+      # Étape 7 : Démarrer le serveur Angular en arrière-plan
+      - name: Start Angular Server
+        run: npx ng serve &
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
+
+      # Étape 8 : Exécuter les tests Cypress
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
@@ -54,7 +60,7 @@ jobs:
           working-directory: breizhsport-front
           # wait-on: "http://localhost:4200"
 
-      # Étape 8 : Vérifier si les artefacts existent
+      # Étape 9 : Vérifier si les artefacts existent
       - name: Check if artifacts exist
         id: check-artifacts
         run: |
@@ -64,7 +70,7 @@ jobs:
             echo "artifacts_exist=false" >> $GITHUB_OUTPUT
           fi
 
-      # Étape 9 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 10 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
         if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
