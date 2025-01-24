@@ -1,47 +1,42 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CartService {
-  private cart: any[] = []; // Stocke les articles du panier
+  private apiUrl = 'http://localhost:3000/cart'; // URL de l'API Gateway pour le panier
 
-  // Retourne les articles du panier
-  getCartItems() {
-    return this.cart;
+  constructor(private http: HttpClient) {}
+
+  // Retourne les articles du panier depuis l'API
+  getCartItems(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl);
   }
 
-  // Ajoute un produit au panier
-  addToCart(product: any) {
-    const existingItem = this.cart.find((item) => item.id === product.id);
-    if (existingItem) {
-      existingItem.quantity = (existingItem.quantity || 1) + 1;
-    } else {
-      this.cart.push({ ...product, quantity: 1 });
-    }
-  }
-  
-
-  // Supprime un produit du panier
-  removeFromCart(index: number) {
-    this.cart.splice(index, 1);
+  // Ajoute un produit au panier via l'API
+  addToCart(product: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, product);
   }
 
-  // Vide le panier
-  clearCart() {
-    this.cart = [];
+  // Supprime un produit spécifique du panier via l'API
+  removeFromCart(productId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${productId}`);
   }
 
-  // Retourne le nombre total d'articles dans le panier (quantité totale)
-  getTotalItems(): number {
-    return this.cart.reduce((total, item) => total + (item.quantity || 1), 0);
+  // Vide complètement le panier via l'API
+  clearCart(): Observable<any> {
+    return this.http.delete<any>(this.apiUrl);
+  }
+
+  // Retourne le nombre total d'articles dans le panier
+  getTotalItems(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/totalItems`);
   }
 
   // Retourne le montant total du panier
-  getTotalPrice(): number {
-    return this.cart.reduce(
-      (total, item) => total + item.price * (item.quantity || 1),
-      0
-    );
+  getTotalPrice(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/totalPrice`);
   }
 }
