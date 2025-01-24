@@ -20,6 +20,11 @@ export class CartService {
     return this.http.post<any>(this.apiUrl, product);
   }
 
+  // Met à jour la quantité d'un produit dans le panier via l'API
+  updateCartItem(updatedProduct: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${updatedProduct.id}`, updatedProduct);
+  }
+
   // Supprime un produit spécifique du panier via l'API
   removeFromCart(productId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${productId}`);
