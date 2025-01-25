@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { products } from '../../mock-data';
 import { CartService } from '../../services/cart.service';
 import { CommonModule } from '@angular/common';
 import { Location } from '@angular/common'; // Import du service Location
@@ -27,19 +26,29 @@ export class ProductComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.fetchProduct();
+    this.route.paramMap.subscribe((params) => {
+      const rawId = params.get('id');
+
+      // Exclure les IDs invalides ou les fichiers `.map`
+      if (!rawId || isNaN(Number(rawId)) || rawId.includes('.map')) {
+        this.errorMessage = 'ID du produit invalide.';
+        this.isLoading = false;
+        return;
+      }
+
+      const productId = Number(rawId);
+      this.loadProduct(productId);
+    });
   }
 
-  fetchProduct() {
-    const productId = +this.route.snapshot.params['id'];
+  private loadProduct(productId: number) {
     this.apiService.getProduct(productId).subscribe(
       (product) => {
         this.product = product;
         this.isLoading = false;
       },
-      (error) => {
+      () => {
         this.errorMessage = 'Erreur lors du chargement du produit.';
-        console.error(error);
         this.isLoading = false;
       }
     );
@@ -47,21 +56,36 @@ export class ProductComponent implements OnInit {
 
   addToCart() {
     if (this.product) {
-      this.cartService.addToCart(this.product).subscribe(
-        () => {
-          this.showConfirmation = true; // Affiche le message
+      console.log('Ajout au panier du produit :', this.product); // Log le produit brut
+  
+      // Formater les données pour correspondre aux attentes de l'API
+      const cartItem = {
+        productId: this.product.id,
+        name: this.product.name,
+        price: parseFloat(this.product.price), // S'assure que le prix est bien un nombre
+        quantity: 1, // Quantité par défaut
+      };
+  
+      console.log('Données formatées pour l\'API :', cartItem); // Log les données formatées
+  
+      this.cartService.addToCart(cartItem).subscribe(
+        (response) => {
+          console.log('Réponse de l\'API après ajout au panier :', response); // Log de la réponse
+          this.showConfirmation = true; // Affiche le message de confirmation
           setTimeout(() => {
             this.showConfirmation = false;
           }, 2000);
         },
         (error) => {
-          console.error('Erreur lors de l\'ajout au panier :', error);
+          console.error('Erreur lors de l\'ajout au panier :', error); // Log des erreurs
         }
       );
+    } else {
+      console.error('Produit invalide, impossible d\'ajouter au panier'); // Log si aucun produit
     }
   }
   
-
+  
 
   goBack() {
     this.location.back(); // Revenir à la page précédente
