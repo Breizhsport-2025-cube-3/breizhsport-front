@@ -31,8 +31,9 @@ export class ApiService {
   }
 
   addToCart(product: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cart`, product);
+    return this.http.post(`${this.apiUrl}/cart/add`, product);
   }
+  
 
   removeFromCart(productId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/cart/${productId}`);

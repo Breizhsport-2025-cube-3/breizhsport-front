@@ -55,36 +55,27 @@ export class ProductComponent implements OnInit {
   }
 
   addToCart() {
-    if (this.product) {
-      console.log('Ajout au panier du produit :', this.product); // Log le produit brut
-  
-      // Formater les données pour correspondre aux attentes de l'API
-      const cartItem = {
-        productId: this.product.id,
-        name: this.product.name,
-        price: parseFloat(this.product.price), // S'assure que le prix est bien un nombre
-        quantity: 1, // Quantité par défaut
-      };
-  
-      console.log('Données formatées pour l\'API :', cartItem); // Log les données formatées
-  
-      this.cartService.addToCart(cartItem).subscribe(
-        (response) => {
-          console.log('Réponse de l\'API après ajout au panier :', response); // Log de la réponse
-          this.showConfirmation = true; // Affiche le message de confirmation
-          setTimeout(() => {
-            this.showConfirmation = false;
-          }, 2000);
-        },
-        (error) => {
-          console.error('Erreur lors de l\'ajout au panier :', error); // Log des erreurs
-        }
-      );
-    } else {
-      console.error('Produit invalide, impossible d\'ajouter au panier'); // Log si aucun produit
+    if (!this.product) {
+      console.error('Produit invalide, impossible d\'ajouter au panier');
+      return;
     }
-  }
-  
+
+    const cartItem = {
+      productId: this.product.id,
+      name: this.product.name,
+      price: parseFloat(this.product.price),
+      quantity: 1,
+    };
+
+    this.apiService.addToCart(cartItem).subscribe(
+      () => {
+        this.showConfirmation = true;
+        setTimeout(() => this.showConfirmation = false, 2000);
+      },
+      (error) => console.error('Erreur lors de l\'ajout au panier :', error)
+    );
+}
+ 
   
 
   goBack() {
