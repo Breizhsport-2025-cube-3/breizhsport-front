@@ -39,7 +39,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # Étape 6 : Installation de Cypress (sans exécution des tests)
+      # Étape 6 : Installation de Cypress (sans exécution des tests
       - name: Cypress E2E Install
         uses: cypress-io/github-action@v6
         with:
