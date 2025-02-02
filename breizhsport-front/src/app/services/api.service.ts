@@ -47,4 +47,9 @@ export class ApiService {
   placeOrder(order: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/orders`, order);
   }
+
+  updateCartItem(item: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/cart/${item.productId}`, { quantity: item.quantity });
+  }
+  
 }
