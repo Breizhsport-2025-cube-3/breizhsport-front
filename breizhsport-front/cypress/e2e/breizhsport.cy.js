@@ -23,13 +23,13 @@ describe('Test end-to-end Breizhsport - Catégorie Cyclisme', () => {
 
     // 5. Vérifier les détails du produit
     cy.contains('Casque de vélo').should('be.visible');
-    cy.contains('50€').should('be.visible');
+    cy.contains('50.00€').should('be.visible');
     cy.wait(2000); // Pause de 1 seconde
 
     // 6. Ajouter au panier
     cy.get('button').contains('Ajouter au panier').click();
     cy.get('.confirmation').should('contain', 'Produit ajouté au panier');
-    cy.wait(2000); // Pause de 1 seconde
+    cy.wait(2000); // Pause de 1 second
 
     // 7. Accéder à "Mon Panier"
     cy.get('a.nav-link[routerLink="/cart"]').should('be.visible').click(); // Cible le lien "Mon Panier"
