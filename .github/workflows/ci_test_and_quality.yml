@@ -80,3 +80,12 @@ jobs:
             breizhsport-front/cypress/videos
             breizhsport-front/cypress/screenshots
           retention-days: 3
+  publish-on-docker:
+    needs: [cypress-tests]
+    uses: Breizhsport-2025-cube-3/breizhsport-infra/.github/workflows/publish_on_docker.yml@main
+    secrets:
+      tags: ${{ secrets.DOCKER_USERNAME }}/breizhsport-front:develop
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PAT: ${{ secrets.DOCKER_PAT }}
+
+      
