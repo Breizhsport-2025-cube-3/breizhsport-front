@@ -7,7 +7,11 @@ import { CheckoutComponent } from './pages/checkout/checkout.component'; // Impo
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
-  { path: 'category/:id', component: CategoryComponent },
+  {
+    path: 'category/:id',
+    component: CategoryComponent,
+    data: { renderMode: 'default' }
+  },
   { path: 'product/:id', component: ProductComponent },
   { path: 'cart', component: CartComponent },
   { path: 'checkout', component: CheckoutComponent }, // Ajout de la route
