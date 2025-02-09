@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
   cypress-tests:
@@ -82,6 +84,7 @@ jobs:
           retention-days: 3
   publish-on-docker:
     needs: [cypress-tests]
+    if: github.ref == 'refs/heads/main'
     uses: Breizhsport-2025-cube-3/breizhsport-infra/.github/workflows/publish_on_docker.yml@main
     secrets:
       tags: ${{ secrets.DOCKER_USERNAME }}/breizhsport-front:develop
