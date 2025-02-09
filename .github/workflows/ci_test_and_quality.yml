@@ -13,9 +13,6 @@ on:
 jobs:
   cypress-tests:
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: breizhsport-front
     steps:
       # Étape 1 : Checkout du code
       - name: Checkout Code
@@ -27,28 +24,34 @@ jobs:
         with:
           node-version: 20.x
 
-      # Étape 3 : Créer le dossier videos dans le bon emplacement
-      - name: Create videos directory
-        run: mkdir -p cypress/videos
+      # Étape 3 : Nettoyer node_modules et package-lock.json
+      - name: Clean Node Modules
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
 
-      # Étape 4 : Installation des dépendances
+      # Étape 4 : Créer le dossier videos dans le bon emplacement
+      - name: Create videos directory
+        run: mkdir -p breizhsport-front/cypress/videos
+
+      # Étape 5 : Installation des dépendances
       - name: Install Dependencies
         run: npm install
 
-      # Étape 5 : Installation de Cypress (sans exécution des tests)
+      # Étape 6 : Installation de Cypress (sans exécution des tests)
       - name: Cypress E2E Install
         uses: cypress-io/github-action@v6
         with:
           runTests: false
           working-directory: breizhsport-front
 
-      # Étape 6 : Démarrer le serveur Angular en arrière-plan
+      # Étape 7 : Démarrer le serveur Angular en arrière-plan
       - name: Start Angular Server
         run: npx ng serve &
         env:
           NODE_OPTIONS: --openssl-legacy-provider
 
-      # Étape 7 : Exécuter les tests Cypress
+      # Étape 8 : Exécuter les tests Cypress
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
@@ -56,7 +59,7 @@ jobs:
           working-directory: breizhsport-front
           # wait-on: "http://localhost:4200"
 
-      # Étape 8 : Vérifier si les artefacts existent.
+      # Étape 9 : Vérifier si les artefacts existent.
       - name: Check if artifacts exist
         id: check-artifacts
         run: |
@@ -66,7 +69,7 @@ jobs:
             echo "artifacts_exist=false" >> $GITHUB_OUTPUT
           fi
 
-      # Étape 9 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 10 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
         if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
