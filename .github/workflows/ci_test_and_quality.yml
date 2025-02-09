@@ -62,7 +62,7 @@ jobs:
           working-directory: breizhsport-front
           # wait-on: "http://localhost:4200"
 
-      # Étape 9 : Vérifier si les artefacts existent
+      # Étape 9 : Vérifier si les artefacts existent.
       - name: Check if artifacts exist
         id: check-artifacts
         run: |
