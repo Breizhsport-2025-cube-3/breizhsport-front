@@ -1,4 +1,4 @@
-name: Integration
+name: Cypress Tests
 
 on:
   push:
@@ -11,115 +11,126 @@ on:
       - dev
 
 jobs:
-  Backend:
-    runs-on: ubuntu-latest
-
-    services:
-      api-gateway:
-        image: mathiskrr/breizhsport-api-gateway:develop
-        ports:
-          - 3000:3000
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_DIALECT: ${{ secrets.DB_DIALECT }}
-        options: --health-cmd="curl --fail http://localhost:3000 || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
-
-      cart-service:
-        image: mathiskrr/breizhsport-cart:develop
-        ports:
-          - 4001:4001
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_DIALECT: ${{ secrets.DB_DIALECT }}
-        options: --health-cmd="curl --fail http://localhost:4001 || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
-
-      product-service:
-        image: mathiskrr/breizhsport-product:develop
-        ports:
-          - 4002:4002
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_DIALECT: ${{ secrets.DB_DIALECT }}
-        options: --health-cmd="curl --fail http://localhost:4002 || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
-
-      category-service:
-        image: mathiskrr/breizhsport-category:develop
-        ports:
-          - 4003:4003
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_DIALECT: ${{ secrets.DB_DIALECT }}
-        options: --health-cmd="curl --fail http://localhost:4003 || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
-
+  cypress-tests:
+    runs-on: ubuntu-22.04
     steps:
+      # Étape 1 : Checkout du code
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Étape 2 : Créer un fichier .env pour Docker Compose
+      - name: Create .env file for Docker Compose
+        run: |
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_DIALECT=${{ secrets.DB_DIALECT }}" >> .env
+
+      # Étape 3 : Configurer Docker Buildx pour Docker Compose
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Étape 4 : Démarrer les services avec Docker Compose
+      - name: Start Services with Docker Compose
+        run: docker compose --env-file .env -f compose.yaml up -d --build
+
+      # Étape 5 : Vérifier les conteneurs Docker en cours d'exécution
+      - name: Check running Docker containers
+        run: docker ps
+
+      # Étape 6 : Vérifier les conteneurs stoppés pour diagnostiquer les erreurs
+      - name: Check all Docker containers (including stopped)
+        run: docker ps -a
+
+      # Étape 7 : Afficher les logs Docker Compose pour diagnostiquer
+      - name: Check Docker Compose Logs
+        run: docker compose logs
+
+      # Étape 8 : Attendre que l'API Gateway soit prête
+      - name: Wait for API Gateway to be ready
+        run: npx wait-on http://0.0.0.0:3000 --timeout=60000
+
+      # Étape 9 : Attendre que les autres services soient prêts avec un timeout
+      - name: Wait for other services to be ready
+        run: |
+          npx wait-on http://0.0.0.0:4001 --timeout=60000 \
+                      http://0.0.0.0:4002 --timeout=60000 \
+                      http://0.0.0.0:4003 --timeout=60000
+
+      # Étape 10 : Configuration de Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
+      # Étape 11 : Nettoyer node_modules et package-lock.json
+      - name: Clean Node Modules
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+
+      # Étape 12 : Créer le dossier videos dans le bon emplacement
+      - name: Create videos directory
+        run: mkdir -p breizhsport-front/cypress/videos
+
+      # Étape 13 : Installation des dépendances (y compris wait-on)
       - name: Install Dependencies
-        run: npm install
+        run: npm install --save-dev wait-on
 
-      - name: Run Backend Tests
-        run: npm run test
-
-      - name: Upload Backend Test Results
-        uses: actions/upload-artifact@v4
+      # Étape 14 : Installation de Cypress (sans exécution des tests)
+      - name: Cypress E2E Install
+        uses: cypress-io/github-action@v6
         with:
-          name: backend-test-results
-          path: backend/test-results
-          retention-days: 3
+          runTests: false
 
-  Frontend:
-    needs: [Backend]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Start Frontend for E2E Tests
+      # Étape 15 : Démarrer le serveur Angular en arrière-plan
+      - name: Start Angular Server
         run: npx ng serve &
         env:
           NODE_OPTIONS: --openssl-legacy-provider
 
+      # Étape 16 : Attendre que le serveur Angular soit prêt avec un timeout
       - name: Wait for Frontend to be ready
         run: npx wait-on http://localhost:4200 --timeout=60000
 
+      # Étape 17 : Exécuter les tests Cypress
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           install: false
 
+      # Étape 18 : Vérifier si les artefacts existent.
+      - name: Check if artifacts exist
+        id: check-artifacts
+        run: |
+          if [ -d "breizhsport-front/cypress/videos" ] || [ -d "breizhsport-front/cypress/screenshots" ]; then
+            echo "artifacts_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "artifacts_exist=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Étape 19 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
-        if: always()
+        if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: cypress-artifacts
           path: |
-            frontend/cypress/videos
-            frontend/cypress/screenshots
+            breizhsport-front/cypress/videos
+            breizhsport-front/cypress/screenshots
           retention-days: 3
+
+      # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests.
+      - name: Shutdown Docker Containers
+        if: always()
+        run: docker compose --env-file .env -f compose.yaml down
+
+  publish-on-docker:
+    needs: [cypress-tests]
+    if: github.ref == 'refs/heads/main'
+    uses: Breizhsport-2025-cube-3/breizhsport-infra/.github/workflows/publish_on_docker.yml@main
+    secrets:
+      tags: ${{ secrets.DOCKER_USERNAME }}/breizhsport-front:develop
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PAT: ${{ secrets.DOCKER_PAT }}
