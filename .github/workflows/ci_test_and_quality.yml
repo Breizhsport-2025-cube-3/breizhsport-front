@@ -47,57 +47,60 @@ jobs:
       - name: Check Docker Compose Logs
         run: docker compose logs
 
-      # Étape 8 : Attendre que tous les services soient prêts avec un timeout
-      - name: Wait for services to be ready
-        run: |
-          npx wait-on http://localhost:3000 \
-                      http://localhost:4001 \
-                      http://localhost:4002 \
-                      http://localhost:4003 --timeout 30000
+      # Étape 8 : Attendre que l'API Gateway soit prête
+      - name: Wait for API Gateway to be ready
+        run: npx wait-on http://localhost:3000 --timeout=60000
 
-      # Étape 9 : Configuration de Node.js
+      # Étape 9 : Attendre que les autres services soient prêts avec un timeout
+      - name: Wait for other services to be ready
+        run: |
+          npx wait-on http://localhost:4001 --timeout=60000 \
+                      http://localhost:4002 --timeout=60000 \
+                      http://localhost:4003 --timeout=60000
+
+      # Étape 10 : Configuration de Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
-      # Étape 10 : Nettoyer node_modules et package-lock.json
+      # Étape 11 : Nettoyer node_modules et package-lock.json
       - name: Clean Node Modules
         run: |
           rm -rf node_modules
           rm -f package-lock.json
 
-      # Étape 11 : Créer le dossier videos dans le bon emplacement
+      # Étape 12 : Créer le dossier videos dans le bon emplacement
       - name: Create videos directory
         run: mkdir -p breizhsport-front/cypress/videos
 
-      # Étape 12 : Installation des dépendances (y compris wait-on)
+      # Étape 13 : Installation des dépendances (y compris wait-on)
       - name: Install Dependencies
         run: npm install --save-dev wait-on
 
-      # Étape 13 : Installation de Cypress (sans exécution des tests)
+      # Étape 14 : Installation de Cypress (sans exécution des tests)
       - name: Cypress E2E Install
         uses: cypress-io/github-action@v6
         with:
           runTests: false
 
-      # Étape 14 : Démarrer le serveur Angular en arrière-plan
+      # Étape 15 : Démarrer le serveur Angular en arrière-plan
       - name: Start Angular Server
         run: npx ng serve &
         env:
           NODE_OPTIONS: --openssl-legacy-provider
 
-      # Étape 15 : Attendre que le serveur Angular soit prêt avec un timeout
+      # Étape 16 : Attendre que le serveur Angular soit prêt avec un timeout
       - name: Wait for Frontend to be ready
-        run: npx wait-on http://localhost:4200 --timeout 30000
+        run: npx wait-on http://localhost:4200 --timeout=60000
 
-      # Étape 16 : Exécuter les tests Cypress
+      # Étape 17 : Exécuter les tests Cypress
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           install: false
 
-      # Étape 17 : Vérifier si les artefacts existent.
+      # Étape 18 : Vérifier si les artefacts existent.
       - name: Check if artifacts exist
         id: check-artifacts
         run: |
@@ -107,7 +110,7 @@ jobs:
             echo "artifacts_exist=false" >> $GITHUB_OUTPUT
           fi
 
-      # Étape 18 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 19 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
         if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
@@ -118,10 +121,10 @@ jobs:
             breizhsport-front/cypress/screenshots
           retention-days: 3
 
-      # Étape 19 : Arrêter et nettoyer les conteneurs Docker après les tests.
+      # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests.
       - name: Shutdown Docker Containers
         if: always()
-        run: docker compose -f compose.yaml down
+        run: docker compose --env-file .env -f compose.yaml down
 
   publish-on-docker:
     needs: [cypress-tests]
