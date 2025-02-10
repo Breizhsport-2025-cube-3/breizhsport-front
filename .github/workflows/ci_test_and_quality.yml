@@ -24,15 +24,15 @@ jobs:
 
       # Étape 3 : Démarrer les services avec Docker Compose
       - name: Start Services with Docker Compose
-        run: docker-compose -f compose.yaml up -d --build
+        run: docker compose -f compose.yaml up -d --build
 
       # Étape 4 : Attendre que tous les services soient prêts
       - name: Wait for services to be ready
         run: |
-          npx wait-on http://localhost:3000/api/health \
-                      http://localhost:4001/api/health \
-                      http://localhost:4002/api/health \
-                      http://localhost:4003/api/health
+          npx wait-on http://localhost:3000 \
+                      http://localhost:4001 \
+                      http://localhost:4002 \
+                      http://localhost:4003
 
       # Étape 5 : Configuration de Node.js
       - name: Setup Node.js
