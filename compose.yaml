@@ -13,28 +13,28 @@ services:
       - category-service
 
   api-gateway:
-    image: mathiskrr/breizhsport-api-gateway:latest
+    image: mathiskrr/breizhsport-api-gateway:develop
     ports:
       - 3000:3000
     environment:
       NODE_ENV: test
 
   cart-service:
-    image: mathiskrr/breizhsport-cart:latest
+    image: mathiskrr/breizhsport-cart:develop
     ports:
       - 4001:4001
     environment:
       NODE_ENV: test
 
   product-service:
-    image: mathiskrr/breizhsport-product:latest
+    image: mathiskrr/breizhsport-product:develop
     ports:
       - 4002:4002
     environment:
       NODE_ENV: test
 
   category-service:
-    image: mathiskrr/breizhsport-category:latest
+    image: mathiskrr/breizhsport-category:develop
     ports:
       - 4003:4003
     environment:
