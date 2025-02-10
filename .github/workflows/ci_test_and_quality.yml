@@ -18,83 +18,86 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Étape 2 : Configurer Docker Buildx pour Docker Compose
+      # Étape 2 : Créer un fichier .env pour Docker Compose
+      - name: Create .env file for Docker Compose
+        run: |
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_DIALECT=${{ secrets.DB_DIALECT }}" >> .env
+
+      # Étape 3 : Configurer Docker Buildx pour Docker Compose
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Étape 3 : Démarrer les services avec Docker Compose
+      # Étape 4 : Démarrer les services avec Docker Compose
       - name: Start Services with Docker Compose
-        run: docker compose -f compose.yaml up -d --build
-        env :
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_DIALECT: ${{ secrets.DB_DIALECT }}
+        run: docker compose --env-file .env -f compose.yaml up -d --build
 
-      # Étape 4 : Vérifier les conteneurs Docker en cours d'exécution
+      # Étape 5 : Vérifier les conteneurs Docker en cours d'exécution
       - name: Check running Docker containers
         run: docker ps
 
-      # Étape 5 : Vérifier les conteneurs stoppés pour diagnostiquer les erreurs
+      # Étape 6 : Vérifier les conteneurs stoppés pour diagnostiquer les erreurs
       - name: Check all Docker containers (including stopped)
         run: docker ps -a
 
-      # Étape 6 : Afficher les logs Docker Compose pour diagnostiquer
+      # Étape 7 : Afficher les logs Docker Compose pour diagnostiquer
       - name: Check Docker Compose Logs
         run: docker compose logs
 
-      # Étape 7 : Attendre que tous les services soient prêts avec un timeout
+      # Étape 8 : Attendre que tous les services soient prêts avec un timeout
       - name: Wait for services to be ready
         run: |
-          npx wait-on http://localhost:3000 --timeout=30000 \
-                      http://localhost:4001 --timeout=30000 \
-                      http://localhost:4002 --timeout=30000 \
-                      http://localhost:4003 --timeout=30000
+          npx wait-on http://localhost:3000 \
+                      http://localhost:4001 \
+                      http://localhost:4002 \
+                      http://localhost:4003 --timeout 30000
 
-      # Étape 8 : Configuration de Node.js
+      # Étape 9 : Configuration de Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
-      # Étape 9 : Nettoyer node_modules et package-lock.json
+      # Étape 10 : Nettoyer node_modules et package-lock.json
       - name: Clean Node Modules
         run: |
           rm -rf node_modules
           rm -f package-lock.json
 
-      # Étape 10 : Créer le dossier videos dans le bon emplacement
+      # Étape 11 : Créer le dossier videos dans le bon emplacement
       - name: Create videos directory
         run: mkdir -p breizhsport-front/cypress/videos
 
-      # Étape 11 : Installation des dépendances (y compris wait-on)
+      # Étape 12 : Installation des dépendances (y compris wait-on)
       - name: Install Dependencies
         run: npm install --save-dev wait-on
 
-      # Étape 12 : Installation de Cypress (sans exécution des tests)
+      # Étape 13 : Installation de Cypress (sans exécution des tests)
       - name: Cypress E2E Install
         uses: cypress-io/github-action@v6
         with:
           runTests: false
 
-      # Étape 13 : Démarrer le serveur Angular en arrière-plan
+      # Étape 14 : Démarrer le serveur Angular en arrière-plan
       - name: Start Angular Server
         run: npx ng serve &
         env:
           NODE_OPTIONS: --openssl-legacy-provider
 
-      # Étape 14 : Attendre que le serveur Angular soit prêt avec un timeout
+      # Étape 15 : Attendre que le serveur Angular soit prêt avec un timeout
       - name: Wait for Frontend to be ready
-        run: npx wait-on http://localhost:4200 --timeout=30000
+        run: npx wait-on http://localhost:4200 --timeout 30000
 
-      # Étape 15 : Exécuter les tests Cypress
+      # Étape 16 : Exécuter les tests Cypress
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           install: false
 
-      # Étape 16 : Vérifier si les artefacts existent.
+      # Étape 17 : Vérifier si les artefacts existent.
       - name: Check if artifacts exist
         id: check-artifacts
         run: |
@@ -104,7 +107,7 @@ jobs:
             echo "artifacts_exist=false" >> $GITHUB_OUTPUT
           fi
 
-      # Étape 17 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 18 : Téléverser les artefacts (vidéos, screenshots, etc.)
       - name: Upload Cypress Artifacts
         if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
@@ -115,7 +118,7 @@ jobs:
             breizhsport-front/cypress/screenshots
           retention-days: 3
 
-      # Étape 18 : Arrêter et nettoyer les conteneurs Docker après les tests
+      # Étape 19 : Arrêter et nettoyer les conteneurs Docker après les tests
       - name: Shutdown Docker Containers
         if: always()
         run: docker compose -f compose.yaml down
