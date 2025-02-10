@@ -18,6 +18,11 @@ services:
       - 3000:3000
     environment:
       NODE_ENV: test
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_DIALECT: ${DB_DIALECT}
 
   cart-service:
     image: mathiskrr/breizhsport-cart:develop
@@ -25,6 +30,11 @@ services:
       - 4001:4001
     environment:
       NODE_ENV: test
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_DIALECT: ${DB_DIALECT}
 
   product-service:
     image: mathiskrr/breizhsport-product:develop
@@ -32,6 +42,11 @@ services:
       - 4002:4002
     environment:
       NODE_ENV: test
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_DIALECT: ${DB_DIALECT}
 
   category-service:
     image: mathiskrr/breizhsport-category:develop
@@ -39,3 +54,8 @@ services:
       - 4003:4003
     environment:
       NODE_ENV: test
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_DIALECT: ${DB_DIALECT}
