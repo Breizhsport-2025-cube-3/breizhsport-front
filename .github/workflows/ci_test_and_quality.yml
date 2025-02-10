@@ -118,7 +118,7 @@ jobs:
             breizhsport-front/cypress/screenshots
           retention-days: 3
 
-      # Étape 19 : Arrêter et nettoyer les conteneurs Docker après les tests
+      # Étape 19 : Arrêter et nettoyer les conteneurs Docker après les tests.
       - name: Shutdown Docker Containers
         if: always()
         run: docker compose -f compose.yaml down
