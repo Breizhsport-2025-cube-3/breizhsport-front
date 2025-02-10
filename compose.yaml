@@ -18,6 +18,7 @@ services:
       - 3000:3000
     environment:
       NODE_ENV: test
+      PORT: 3000
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -30,6 +31,7 @@ services:
       - 4001:4001
     environment:
       NODE_ENV: test
+      PORT: 4001
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -42,6 +44,7 @@ services:
       - 4002:4002
     environment:
       NODE_ENV: test
+      PORT: 4002
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -54,6 +57,7 @@ services:
       - 4003:4003
     environment:
       NODE_ENV: test
+      PORT: 4003
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
