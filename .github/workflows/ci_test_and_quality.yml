@@ -14,6 +14,14 @@ jobs:
   cypress-tests:
     runs-on: ubuntu-22.04
     services:
+      server:
+        image: mathiskrr/breizhsport-front:develop
+        env:
+          CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL}}
+          PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL}}
+          CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL}}
+        ports:
+          - 4200:4200
       api-gateway:
         image : mathiskrr/breizhsport-api-gateway:develop
         env:
@@ -73,10 +81,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # # Étape 4 : Démarrer les services avec Docker Compose
-      # - name: Start Services with Docker Compose
-      #   run: docker compose --env-file .env -f compose.yaml up -d --build
-
       # Étape 5 : Vérifier les conteneurs Docker en cours d'exécution
       - name: Check running Docker containers
         run: docker ps
@@ -88,17 +92,6 @@ jobs:
       # Étape 7 : Afficher les logs Docker Compose pour diagnostiquer
       - name: Check Docker Compose Logs
         run: docker compose logs
-
-      # # Étape 8 : Attendre que l'API Gateway soit prête
-      # - name: Wait for API Gateway to be ready
-      #   run: npx wait-on http://127.0.0.1:3000 --timeout=60000
-
-      # # Étape 9 : Attendre que les autres services soient prêts avec un timeout
-      # - name: Wait for other services to be ready
-      #   run: |
-      #     npx wait-on http://127.0.0.1:4001 --timeout=60000 \
-      #                 http://127.0.0.1:4002 --timeout=60000 \
-      #                 http://127.0.0.1:4003 --timeout=60000
 
       # Étape 10 : Configuration de Node.js
       - name: Setup Node.js
@@ -125,12 +118,6 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           runTests: false
-
-      # Étape 15 : Démarrer le serveur Angular en arrière-plan
-      - name: Start Angular Server
-        run: npx ng serve &
-        env:
-          NODE_OPTIONS: --openssl-legacy-provider
 
       # Étape 16 : Attendre que le serveur Angular soit prêt avec un timeout
       - name: Wait for Frontend to be ready
