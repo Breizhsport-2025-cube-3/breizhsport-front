@@ -23,7 +23,7 @@ jobs:
         ports:
           - 4200:4200
       api-gateway:
-        image : mathiskrr/breizhsport-api-gateway:develop
+        image: mathiskrr/breizhsport-api-gateway:develop
         env:
           DB_NAME: ${{secrets.DB_NAME}}
           DB_USER: ${{secrets.DB_USER}}
@@ -33,7 +33,7 @@ jobs:
         ports:
           - 3000:3000
       cart-service:
-        image : mathiskrr/breizhsport-cart:develop
+        image: mathiskrr/breizhsport-cart:develop
         env:
           DB_NAME: ${{secrets.DB_NAME}}
           DB_USER: ${{secrets.DB_USER}}
@@ -43,7 +43,7 @@ jobs:
         ports:
           - 4001:4001
       product-service:
-        image : mathiskrr/breizhsport-product:develop
+        image: mathiskrr/breizhsport-product:develop
         env:
           DB_NAME: ${{secrets.DB_NAME}}
           DB_USER: ${{secrets.DB_USER}}
@@ -53,7 +53,7 @@ jobs:
         ports:
           - 4002:4002
       categorie-service:
-        image : mathiskrr/breizhsport-category:develop
+        image: mathiskrr/breizhsport-category:develop
         env:
           DB_NAME: ${{secrets.DB_NAME}}
           DB_USER: ${{secrets.DB_USER}}
@@ -77,19 +77,31 @@ jobs:
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           echo "DB_DIALECT=${{ secrets.DB_DIALECT }}" >> .env
 
-      # Étape 3 : Configurer Docker Buildx pour Docker Compose
+      # Étape 3 : Configurer Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Étape 5 : Vérifier les conteneurs Docker en cours d'exécution
+      # Étape 4 : Vérifier si le frontend fonctionne
+      - name: Test if Frontend is Running
+        run: curl -I http://localhost:4200 || exit 1
+
+      # Étape 5 : Attendre que l’API Gateway soit prête
+      - name: Wait for API Gateway to be ready
+        run: npx wait-on http://localhost:3000 --timeout=90000
+
+      # Étape 6 : Vérifier si l’API envoie bien les catégories
+      - name: Check API Categories Response
+        run: curl -s http://localhost:3000/categories
+
+      # Étape 7 : Vérifier les conteneurs en cours d'exécution
       - name: Check running Docker containers
         run: docker ps
 
-      # Étape 6 : Vérifier les conteneurs stoppés pour diagnostiquer les erreurs
+      # Étape 8 : Vérifier les conteneurs arrêtés pour diagnostiquer les erreurs
       - name: Check all Docker containers (including stopped)
         run: docker ps -a
 
-      # Étape 7 : Afficher les logs Docker Compose pour diagnostiquer
+      # Étape 9 : Afficher les logs Docker Compose pour voir les erreurs éventuelles
       - name: Check Docker Compose Logs
         run: docker compose logs
 
@@ -105,7 +117,7 @@ jobs:
           rm -rf node_modules
           rm -f package-lock.json
 
-      # Étape 12 : Créer le dossier videos dans le bon emplacement
+      # Étape 12 : Créer le dossier videos pour Cypress
       - name: Create videos directory
         run: mkdir -p breizhsport-front/cypress/videos
 
@@ -119,17 +131,17 @@ jobs:
         with:
           runTests: false
 
-      # Étape 16 : Attendre que le serveur Angular soit prêt avec un timeout
+      # Étape 15 : Attendre que le serveur Angular soit prêt
       - name: Wait for Frontend to be ready
-        run: npx wait-on http://localhost:4200 --timeout=60000
+        run: npx wait-on http://localhost:4200 --timeout=90000
 
-      # Étape 17 : Exécuter les tests Cypress
+      # Étape 16 : Exécuter les tests Cypress
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           install: false
 
-      # Étape 18 : Vérifier si les artefacts existent.
+      # Étape 17 : Vérifier si les artefacts Cypress existent
       - name: Check if artifacts exist
         id: check-artifacts
         run: |
@@ -139,7 +151,7 @@ jobs:
             echo "artifacts_exist=false" >> $GITHUB_OUTPUT
           fi
 
-      # Étape 19 : Téléverser les artefacts (vidéos, screenshots, etc.)
+      # Étape 18 : Upload des artefacts Cypress (vidéos, screenshots)
       - name: Upload Cypress Artifacts
         if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true'
         uses: actions/upload-artifact@v4
@@ -150,7 +162,7 @@ jobs:
             breizhsport-front/cypress/screenshots
           retention-days: 3
 
-      # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests.
+      # Étape 19 : Nettoyer les conteneurs après les tests
       - name: Shutdown Docker Containers
         if: always()
         run: docker compose --env-file .env -f compose.yaml down
