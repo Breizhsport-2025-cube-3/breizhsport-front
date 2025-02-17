@@ -13,6 +13,48 @@ on:
 jobs:
   cypress-tests:
     runs-on: ubuntu-22.04
+    services:
+      api-gateway:
+        image : mathiskrr/breizhsport-api-gateway:develop
+        env:
+          DB_NAME: ${DB_NAME}
+          DB_USER: ${DB_USER}
+          DB_PASSWORD: ${DB_PASSWORD}
+          DB_HOST: ${DB_HOST}
+          DB_DIALECT: ${DB_DIALECT}
+        ports:
+          - 3000:3000
+      cart-service:
+        image : mathiskrr/breizhsport-cart:develop
+        env:
+          DB_NAME: ${DB_NAME}
+          DB_USER: ${DB_USER}
+          DB_PASSWORD: ${DB_PASSWORD}
+          DB_HOST: ${DB_HOST}
+          DB_DIALECT: ${DB_DIALECT}
+        ports:
+          - 4001:4001
+      product-service:
+        image : mathiskrr/breizhsport-product:develop
+        env:
+          DB_NAME: ${DB_NAME}
+          DB_USER: ${DB_USER}
+          DB_PASSWORD: ${DB_PASSWORD}
+          DB_HOST: ${DB_HOST}
+          DB_DIALECT: ${DB_DIALECT}
+        ports:
+          - 4002:4002
+      categorie-service:
+        image : mathiskrr/breizhsport-category:develop
+        env:
+          DB_NAME: ${DB_NAME}
+          DB_USER: ${DB_USER}
+          DB_PASSWORD: ${DB_PASSWORD}
+          DB_HOST: ${DB_HOST}
+          DB_DIALECT: ${DB_DIALECT}
+        ports:
+          - 4003:4003
+      
     steps:
       # Étape 1 : Checkout du code
       - name: Checkout Code
