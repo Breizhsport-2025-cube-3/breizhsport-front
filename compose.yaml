@@ -1,16 +1,16 @@
 services:
   server:
-    build:
-      context: .
+    image: mathiskrr/breizhsport-front:develop
     environment:
       NODE_ENV: production
     ports:
-      - 4200:4200
+      - "4200:4200"
     depends_on:
       - api-gateway
       - cart-service
       - product-service
       - category-service
+
 
   api-gateway:
     image: mathiskrr/breizhsport-api-gateway:develop
