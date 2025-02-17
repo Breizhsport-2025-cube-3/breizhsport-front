@@ -85,9 +85,6 @@ jobs:
       - name: Test if Frontend is Running
         run: curl -I http://localhost:4200 || exit 1
 
-      # Étape 5 : Attendre que l’API Gateway soit prête
-      - name: Wait for API Gateway to be ready
-        run: npx wait-on http://localhost:3000 --timeout=90000
 
       # Étape 6 : Vérifier si l’API envoie bien les catégories
       - name: Check API Categories Response
