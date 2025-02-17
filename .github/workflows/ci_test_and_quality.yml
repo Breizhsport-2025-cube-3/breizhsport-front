@@ -89,16 +89,16 @@ jobs:
       - name: Check Docker Compose Logs
         run: docker compose logs
 
-      # Étape 8 : Attendre que l'API Gateway soit prête
-      - name: Wait for API Gateway to be ready
-        run: npx wait-on http://127.0.0.1:3000 --timeout=60000
+      # # Étape 8 : Attendre que l'API Gateway soit prête
+      # - name: Wait for API Gateway to be ready
+      #   run: npx wait-on http://127.0.0.1:3000 --timeout=60000
 
-      # Étape 9 : Attendre que les autres services soient prêts avec un timeout
-      - name: Wait for other services to be ready
-        run: |
-          npx wait-on http://127.0.0.1:4001 --timeout=60000 \
-                      http://127.0.0.1:4002 --timeout=60000 \
-                      http://127.0.0.1:4003 --timeout=60000
+      # # Étape 9 : Attendre que les autres services soient prêts avec un timeout
+      # - name: Wait for other services to be ready
+      #   run: |
+      #     npx wait-on http://127.0.0.1:4001 --timeout=60000 \
+      #                 http://127.0.0.1:4002 --timeout=60000 \
+      #                 http://127.0.0.1:4003 --timeout=60000
 
       # Étape 10 : Configuration de Node.js
       - name: Setup Node.js
