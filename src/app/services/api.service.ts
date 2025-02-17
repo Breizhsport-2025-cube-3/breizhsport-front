@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:3000'; // URL de l'API Gateway
+  private apiUrl = 'http://127.0.0.1:3000'; // URL de l'API Gateway
 
   constructor(private http: HttpClient) {}
 
