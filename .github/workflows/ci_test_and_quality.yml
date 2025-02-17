@@ -116,9 +116,9 @@ jobs:
       - name: Create videos directory
         run: mkdir -p breizhsport-front/cypress/videos
 
-      # Étape 13 : Installation des dépendances (y compris wait-on)
+      # Étape 13 : Installation des dépendances
       - name: Install Dependencies
-        run: npm install --save-dev wait-on
+        run: npm install --save-dev
 
       # Étape 14 : Installation de Cypress (sans exécution des tests)
       - name: Cypress E2E Install

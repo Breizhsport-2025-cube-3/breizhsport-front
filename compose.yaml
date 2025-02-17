@@ -19,11 +19,7 @@ services:
     environment:
       NODE_ENV: test
       PORT: 3000
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_DIALECT: ${DB_DIALECT}
+    env_file: .env
 
   cart-service:
     image: mathiskrr/breizhsport-cart:develop
@@ -32,11 +28,7 @@ services:
     environment:
       NODE_ENV: test
       PORT: 4001
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_DIALECT: ${DB_DIALECT}
+    env_file: .env
 
   product-service:
     image: mathiskrr/breizhsport-product:develop
@@ -45,11 +37,7 @@ services:
     environment:
       NODE_ENV: test
       PORT: 4002
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_DIALECT: ${DB_DIALECT}
+    env_file: .env
 
   category-service:
     image: mathiskrr/breizhsport-category:develop
@@ -58,8 +46,4 @@ services:
     environment:
       NODE_ENV: test
       PORT: 4003
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_DIALECT: ${DB_DIALECT}
+    env_file: .env
