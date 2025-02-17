@@ -73,9 +73,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Étape 4 : Démarrer les services avec Docker Compose
-      - name: Start Services with Docker Compose
-        run: docker compose --env-file .env -f compose.yaml up -d --build
+      # # Étape 4 : Démarrer les services avec Docker Compose
+      # - name: Start Services with Docker Compose
+      #   run: docker compose --env-file .env -f compose.yaml up -d --build
 
       # Étape 5 : Vérifier les conteneurs Docker en cours d'exécution
       - name: Check running Docker containers
