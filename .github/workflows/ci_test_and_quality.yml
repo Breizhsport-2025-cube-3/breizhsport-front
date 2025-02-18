@@ -160,9 +160,9 @@ jobs:
       #     retention-days: 3
 
       # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests.
-      - name: Shutdown Docker Containers
-        if: always()
-        run: docker compose --env-file .env -f compose.yaml down
+      # - name: Shutdown Docker Containers
+
+      #   run: docker compose --env-file .env -f compose.yaml down
 
   publish-on-docker:
     needs: [cypress-tests]
