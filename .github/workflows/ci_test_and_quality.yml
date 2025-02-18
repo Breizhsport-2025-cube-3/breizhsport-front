@@ -30,9 +30,9 @@ jobs:
           DB_PASSWORD: ${{secrets.DB_PASSWORD}}
           DB_HOST: ${{secrets.DB_HOST}}
           DB_DIALECT: ${{secrets.DB_DIALECT}}
-          CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL}}
-          PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL}}
-          CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL}}
+          CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}
+          PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL_LOCAL}}
+          CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL_LOCAL}}
         ports:
           - 3000:3000
       cart-service:
@@ -82,6 +82,9 @@ jobs:
           echo "CATEGORIES_SERVICE_URL=${{secrets.CATEGORIES_SERVICE_URL}}" >> .env
           echo "PRODUCT_SERVICE_URL=${{secrets.PRODUCT_SERVICE_URL}}" >> .env
           echo "CART_SERVICE_URL=${{secrets.CART_SERVICE_URL}}" >> .env
+          echo "CATEGORIES_SERVICE_URL=${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}" >> .env
+          echo "PRODUCT_SERVICE_URL=${{secrets.PRODUCT_SERVICE_URL_LOCAL}}" >> .env
+          echo "CART_SERVICE_URL=${{secrets.CART_SERVICE_URL_LOCAL}}" >> .env
 
       # Étape 3 : Configurer Docker Buildx pour Docker Compose
       - name: Set up Docker Buildx
