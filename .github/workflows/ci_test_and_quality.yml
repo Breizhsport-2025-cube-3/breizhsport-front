@@ -159,7 +159,7 @@ jobs:
       #       breizhsport-front/cypress/screenshots
       #     retention-days: 3
 
-      # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests.
+      # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests..
       # - name: Shutdown Docker Containers
 
       #   run: docker compose --env-file .env -f compose.yaml down
