@@ -71,7 +71,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Étape 2 : Créer un fichier .env pour Docker Compose
+      # Étape 2 : Créer un fichier .env pour Docker Compose.
       - name: Create .env file for Docker Compose
         run: |
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
