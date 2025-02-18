@@ -117,49 +117,49 @@ jobs:
           rm -f package-lock.json
 
       # Étape 12 : Créer le dossier videos dans le bon emplacement
-      # - name: Create videos directory
-      #   run: mkdir -p breizhsport-front/cypress/videos
+      - name: Create videos directory
+        run: mkdir -p breizhsport-front/cypress/videos
 
       # Étape 13 : Installation des dépendances
       - name: Install Dependencies
         run: npm install --save-dev
 
       # Étape 14 : Installation de Cypress (sans exécution des tests)
-      # - name: Cypress E2E Install
-      #   uses: cypress-io/github-action@v6
-      #   with:
-      #     runTests: false
+      - name: Cypress E2E Install
+        uses: cypress-io/github-action@v6
+        with:
+          runTests: false
 
       # # Étape 16 : Attendre que le serveur Angular soit prêt avec un timeout
       # - name: Wait for Frontend to be ready
       #   run: npx wait-on http://localhost:4200 --timeout=60000
 
       # Étape 17 : Exécuter les tests Cypress
-      # - name: Run Cypress Tests
-      #   uses: cypress-io/github-action@v6
-      #   with:
-      #     install: false
+      - name: Run Cypress Tests
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
 
       # Étape 18 : Vérifier si les artefacts existent.
-      # - name: Check if artifacts exist
-      #   id: check-artifacts
-      #   run: |
-      #     if [ -d "breizhsport-front/cypress/videos" ] || [ -d "breizhsport-front/cypress/screenshots" ]; then
-      #       echo "artifacts_exist=true" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "artifacts_exist=false" >> $GITHUB_OUTPUT
-      #     fi
+      - name: Check if artifacts exist
+        id: check-artifacts
+        run: |
+          if [ -d "breizhsport-front/cypress/videos" ] || [ -d "breizhsport-front/cypress/screenshots" ]; then
+            echo "artifacts_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "artifacts_exist=false" >> $GITHUB_OUTPUT
+          fi
 
       # # Étape 19 : Téléverser les artefacts (vidéos, screenshots, etc.)
-      # - name: Upload Cypress Artifacts
-
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: cypress-artifacts
-      #     path: |
-      #       breizhsport-front/cypress/videos
-      #       breizhsport-front/cypress/screenshots
-      #     retention-days: 3
+      - name: Upload Cypress Artifacts
+        if: always() && steps.check-artifacts.outputs.artifacts_exist == 'true' 
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            breizhsport-front/cypress/videos
+            breizhsport-front/cypress/screenshots
+          retention-days: 3
 
       # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests..
       # - name: Shutdown Docker Containers
