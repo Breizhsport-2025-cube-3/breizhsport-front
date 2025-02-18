@@ -82,9 +82,9 @@ jobs:
           echo "CATEGORIES_SERVICE_URL=${{secrets.CATEGORIES_SERVICE_URL}}" >> .env
           echo "PRODUCT_SERVICE_URL=${{secrets.PRODUCT_SERVICE_URL}}" >> .env
           echo "CART_SERVICE_URL=${{secrets.CART_SERVICE_URL}}" >> .env
-          echo "CATEGORIES_SERVICE_URL=${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}" >> .env
-          echo "PRODUCT_SERVICE_URL=${{secrets.PRODUCT_SERVICE_URL_LOCAL}}" >> .env
-          echo "CART_SERVICE_URL=${{secrets.CART_SERVICE_URL_LOCAL}}" >> .env
+          echo "CATEGORIES_SERVICE_URL_LOCAL=${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}" >> .env
+          echo "PRODUCT_SERVICE_URL_LOCAL=${{secrets.PRODUCT_SERVICE_URL_LOCAL}}" >> .env
+          echo "CART_SERVICE_URL_LOCAL=${{secrets.CART_SERVICE_URL_LOCAL}}" >> .env
 
       # Étape 3 : Configurer Docker Buildx pour Docker Compose
       - name: Set up Docker Buildx
