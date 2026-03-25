@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'breizhsport-frontend'
+    metrics_path: /health
+    static_configs:
+      - targets: ['server:4200']
+    scrape_interval: 30s
+
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']
+    scrape_interval: 15s
+
+  - job_name: 'cart-service'
+    static_configs:
+      - targets: ['cart-service:4001']
+    scrape_interval: 15s
+
+  - job_name: 'product-service'
+    static_configs:
+      - targets: ['product-service:4002']
+    scrape_interval: 15s
+
+  - job_name: 'category-service'
+    static_configs:
+      - targets: ['category-service:4003']
+    scrape_interval: 15s
