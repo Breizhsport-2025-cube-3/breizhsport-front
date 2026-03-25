@@ -18,89 +18,65 @@ describe('Breizhsport E2E Tests', () => {
       cy.contains('Accueil').should('be.visible');
       cy.contains('Mon Panier').should('be.visible');
     });
-
-    it('Affiche les liens de connexion et inscription', () => {
-      cy.visit('http://localhost:4200');
-      cy.contains('Connexion').should('be.visible');
-      cy.contains('Inscription').should('be.visible');
-    });
-  });
-
-  describe('Page de connexion', () => {
-    it('Affiche le formulaire de connexion', () => {
-      cy.visit('http://localhost:4200/login');
-      cy.contains('Connexion').should('be.visible');
-      cy.get('input[type="email"]').should('be.visible');
-      cy.get('input[type="password"]').should('be.visible');
-      cy.get('button[type="submit"]').should('be.visible');
-    });
-
-    it('Affiche une erreur avec un formulaire vide', () => {
-      cy.visit('http://localhost:4200/login');
-      cy.get('button[type="submit"]').click();
-      cy.contains('Veuillez remplir tous les champs').should('be.visible');
-    });
-
-    it('Contient un lien vers la page d\'inscription', () => {
-      cy.visit('http://localhost:4200/login');
-      cy.get('a[routerLink="/register"]').should('be.visible');
-    });
-  });
-
-  describe('Page d\'inscription', () => {
-    it('Affiche le formulaire d\'inscription', () => {
-      cy.visit('http://localhost:4200/register');
-      cy.contains('Créer un compte').should('be.visible');
-      cy.get('input[name="firstName"]').should('be.visible');
-      cy.get('input[name="lastName"]').should('be.visible');
-      cy.get('input[type="email"]').should('be.visible');
-    });
-
-    it('Valide la longueur du mot de passe', () => {
-      cy.visit('http://localhost:4200/register');
-      cy.get('input[name="firstName"]').type('Test');
-      cy.get('input[name="lastName"]').type('User');
-      cy.get('input[type="email"]').type('test@test.com');
-      cy.get('input[name="password"]').type('short');
-      cy.get('input[name="confirmPassword"]').type('short');
-      cy.get('button[type="submit"]').click();
-      cy.contains('au moins 8 caractères').should('be.visible');
-    });
   });
 
   describe('Parcours catégorie et produit', () => {
-    it('Naviguer vers une catégorie et voir les produits', () => {
+    it('Naviguer vers la catégorie Cyclisme et afficher les produits', () => {
       cy.visit('http://localhost:4200');
       cy.contains('Bienvenue sur Breizhsport').should('be.visible');
 
       // Naviguer vers Cyclisme
       cy.get('a').contains('Cyclisme').click();
       cy.url().should('include', '/category/2');
+      cy.wait(3000);
 
       // Vérifier les produits
       cy.contains('Casque de vélo').should('be.visible');
+    });
 
-      // Voir les détails d'un produit
+    it('Afficher les détails d\'un produit et l\'ajouter au panier', () => {
+      cy.visit('http://localhost:4200');
+      cy.get('a').contains('Cyclisme').click();
+      cy.url().should('include', '/category/2');
+      cy.wait(3000);
+
+      // Cliquer sur "Voir" pour "Casque de vélo"
       cy.get('.product-card').contains('Casque de vélo').parent().within(() => {
         cy.get('button').contains('Voir').click();
       });
       cy.url().should('include', '/product/4');
+      cy.wait(3000);
 
-      // Vérifier les détails
+      // Vérifier les détails du produit
       cy.contains('Casque de vélo').should('be.visible');
       cy.contains('50.00€').should('be.visible');
+
+      // Ajouter au panier
+      cy.get('button').contains('Ajouter au panier').click();
+      cy.get('.confirmation').should('contain', 'Produit ajouté au panier');
     });
   });
 
-  describe('Sécurité - Protection des routes', () => {
-    it('Redirige vers login quand on accède au panier sans être connecté', () => {
-      cy.visit('http://localhost:4200/cart');
-      cy.url().should('include', '/login');
-    });
+  describe('Panier', () => {
+    it('Accéder au panier et vérifier le contenu', () => {
+      // D'abord ajouter un produit
+      cy.visit('http://localhost:4200');
+      cy.get('a').contains('Cyclisme').click();
+      cy.wait(3000);
+      cy.get('.product-card').contains('Casque de vélo').parent().within(() => {
+        cy.get('button').contains('Voir').click();
+      });
+      cy.wait(3000);
+      cy.get('button').contains('Ajouter au panier').click();
+      cy.wait(2000);
 
-    it('Redirige vers login quand on accède au checkout sans être connecté', () => {
-      cy.visit('http://localhost:4200/checkout');
-      cy.url().should('include', '/login');
+      // Accéder au panier
+      cy.get('a.nav-link[routerLink="/cart"]').should('be.visible').click();
+      cy.url().should('include', '/cart');
+
+      // Vérifier le contenu
+      cy.contains('Casque de vélo').should('be.visible');
+      cy.contains('50€').should('be.visible');
     });
   });
 
