@@ -1,24 +1,4 @@
 services:
-  # Base de données MySQL locale
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: breizhsport_data
-      MYSQL_USER: breizhsport_admin
-      MYSQL_PASSWORD: admin2025
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
-
   server:
     image: mathiskrr/breizhsport-front:develop
     environment:
@@ -47,15 +27,12 @@ services:
       PORT: 3000
       DB_NAME: breizhsport_data
       DB_USER: breizhsport_admin
-      DB_PASSWORD: admin2025
-      DB_HOST: mysql
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
       DB_DIALECT: mysql
       CATEGORIES_SERVICE_URL: http://category-service:4003
       PRODUCT_SERVICE_URL: http://product-service:4002
       CART_SERVICE_URL: http://cart-service:4001
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped
 
   cart-service:
@@ -67,12 +44,9 @@ services:
       PORT: 4001
       DB_NAME: breizhsport_data
       DB_USER: breizhsport_admin
-      DB_PASSWORD: admin2025
-      DB_HOST: mysql
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
       DB_DIALECT: mysql
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped
 
   product-service:
@@ -84,12 +58,9 @@ services:
       PORT: 4002
       DB_NAME: breizhsport_data
       DB_USER: breizhsport_admin
-      DB_PASSWORD: admin2025
-      DB_HOST: mysql
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
       DB_DIALECT: mysql
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped
 
   category-service:
@@ -101,12 +72,9 @@ services:
       PORT: 4003
       DB_NAME: breizhsport_data
       DB_USER: breizhsport_admin
-      DB_PASSWORD: admin2025
-      DB_HOST: mysql
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
       DB_DIALECT: mysql
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped
 
   # Prometheus - Collecte de métriques
@@ -128,6 +96,3 @@ services:
     depends_on:
       - prometheus
     restart: unless-stopped
-
-volumes:
-  mysql_data:
