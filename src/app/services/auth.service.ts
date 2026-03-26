@@ -8,14 +8,11 @@ import { LoggingService } from './logging.service';
 export interface User {
   id: number;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
+  username: string;
 }
 
 export interface AuthResponse {
   token: string;
-  refreshToken: string;
   user: User;
 }
 
@@ -26,7 +23,6 @@ export class AuthService {
   private apiUrl = 'http://127.0.0.1:3000/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenKey = 'breizhsport_token';
-  private refreshTokenKey = 'breizhsport_refresh_token';
   private userKey = 'breizhsport_user';
 
   currentUser$ = this.currentUserSubject.asObservable();
@@ -34,7 +30,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private logger: LoggingService
+    private logger: LoggingService,
   ) {
     this.loadStoredUser();
   }
@@ -45,7 +41,9 @@ export class AuthService {
       try {
         const user = JSON.parse(storedUser);
         this.currentUserSubject.next(user);
-        this.logger.info('AuthService', 'User session restored', { userId: user.id });
+        this.logger.info('AuthService', 'User session restored', {
+          userId: user.id,
+        });
       } catch {
         this.clearAuth();
       }
@@ -55,31 +53,60 @@ export class AuthService {
   login(email: string, password: string): Observable<AuthResponse> {
     this.logger.info('AuthService', 'Login attempt', { email });
 
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-      tap((response) => {
-        this.storeAuth(response);
-        this.logger.info('AuthService', 'Login successful', { userId: response.user.id });
-      }),
-      catchError((error) => {
-        this.logger.error('AuthService', 'Login failed', { email, status: error.status });
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, { email, password })
+      .pipe(
+        tap((response) => {
+          this.storeAuth(response);
+          this.logger.info('AuthService', 'Login successful', {
+            userId: response.user.id,
+          });
+        }),
+        catchError((error) => {
+          this.logger.error('AuthService', 'Login failed', {
+            email,
+            status: error.status,
+          });
+          return throwError(() => error);
+        }),
+      );
   }
 
-  register(userData: { email: string; password: string; firstName: string; lastName: string }): Observable<AuthResponse> {
-    this.logger.info('AuthService', 'Registration attempt', { email: userData.email });
+  register(userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }): Observable<AuthResponse> {
+    this.logger.info('AuthService', 'Registration attempt', {
+      email: userData.email,
+    });
 
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap((response) => {
-        this.storeAuth(response);
-        this.logger.info('AuthService', 'Registration successful', { userId: response.user.id });
-      }),
-      catchError((error) => {
-        this.logger.error('AuthService', 'Registration failed', { email: userData.email, status: error.status });
-        return throwError(() => error);
-      })
-    );
+    const payload = {
+      username:
+        `${userData.firstName.trim()} ${userData.lastName.trim()}`.trim(),
+      email: userData.email.trim(),
+      password: userData.password,
+    };
+
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/register`, payload)
+      .pipe(
+        tap((response) => {
+          this.storeAuth(response);
+          this.logger.info('AuthService', 'Registration successful', {
+            userId: response.user.id,
+          });
+        }),
+        catchError((error) => {
+          this.logger.error('AuthService', 'Registration failed', {
+            email: userData.email,
+            status: error.status,
+            error: error.error,
+          });
+          return throwError(() => error);
+        }),
+      );
   }
 
   logout(): void {
@@ -87,25 +114,6 @@ export class AuthService {
     this.logger.info('AuthService', 'User logged out', { userId: user?.id });
     this.clearAuth();
     this.router.navigate(['/login']);
-  }
-
-  refreshAccessToken(): Observable<AuthResponse> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available'));
-    }
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken }).pipe(
-      tap((response) => {
-        this.storeAuth(response);
-        this.logger.info('AuthService', 'Token refreshed successfully');
-      }),
-      catchError((error) => {
-        this.logger.error('AuthService', 'Token refresh failed');
-        this.clearAuth();
-        return throwError(() => error);
-      })
-    );
   }
 
   isAuthenticated(): boolean {
@@ -124,29 +132,18 @@ export class AuthService {
     return localStorage.getItem(this.tokenKey);
   }
 
-  getRefreshToken(): string | null {
-    return localStorage.getItem(this.refreshTokenKey);
-  }
-
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    return user?.role === role;
-  }
-
   private storeAuth(response: AuthResponse): void {
     localStorage.setItem(this.tokenKey, response.token);
-    localStorage.setItem(this.refreshTokenKey, response.refreshToken);
     localStorage.setItem(this.userKey, JSON.stringify(response.user));
     this.currentUserSubject.next(response.user);
   }
 
   private clearAuth(): void {
     localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.refreshTokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
   }

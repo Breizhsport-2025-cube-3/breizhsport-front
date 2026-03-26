@@ -24,7 +24,7 @@ export class RegisterComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private logger: LoggingService
+    private logger: LoggingService,
   ) {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
@@ -34,13 +34,20 @@ export class RegisterComponent {
   onSubmit(): void {
     this.errorMessage = '';
 
-    if (!this.firstName || !this.lastName || !this.email || !this.password || !this.confirmPassword) {
+    if (
+      !this.firstName ||
+      !this.lastName ||
+      !this.email ||
+      !this.password ||
+      !this.confirmPassword
+    ) {
       this.errorMessage = 'Veuillez remplir tous les champs.';
       return;
     }
 
     if (this.password.length < 8) {
-      this.errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
+      this.errorMessage =
+        'Le mot de passe doit contenir au moins 8 caractères.';
       return;
     }
 
@@ -57,26 +64,36 @@ export class RegisterComponent {
 
     this.isLoading = true;
 
-    this.authService.register({
-      email: this.email,
-      password: this.password,
-      firstName: this.firstName,
-      lastName: this.lastName,
-    }).subscribe({
-      next: () => {
-        this.logger.info('RegisterComponent', 'User registered successfully');
-        this.router.navigate(['/']);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        if (error.status === 409) {
-          this.errorMessage = 'Un compte avec cet email existe déjà.';
-        } else if (error.status === 0) {
-          this.errorMessage = 'Impossible de contacter le serveur. Veuillez réessayer.';
-        } else {
-          this.errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
-        }
-      },
-    });
+    this.authService
+      .register({
+        email: this.email,
+        password: this.password,
+        firstName: this.firstName,
+        lastName: this.lastName,
+      })
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.logger.info('RegisterComponent', 'User registered successfully');
+          this.router.navigate(['/']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+
+          if (error.status === 409) {
+            this.errorMessage =
+              'Un compte avec cet email ou ce nom existe déjà.';
+          } else if (error.status === 400) {
+            this.errorMessage = error?.error?.message || 'Données invalides.';
+          } else if (error.status === 0) {
+            this.errorMessage =
+              'Impossible de contacter le serveur. Veuillez réessayer.';
+          } else {
+            this.errorMessage =
+              error?.error?.message ||
+              'Une erreur est survenue. Veuillez réessayer.';
+          }
+        },
+      });
   }
 }

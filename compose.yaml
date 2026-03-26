@@ -12,7 +12,15 @@ services:
       - category-service
       - auth-service
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4200/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4200/health",
+        ]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -20,9 +28,10 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    image: mathiskrr/breizhsport-api-gateway:develop
+    build:
+      context: ../breizhsport-back-api-gateway
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
       NODE_ENV: test
       PORT: 3000
@@ -40,7 +49,7 @@ services:
   cart-service:
     image: mathiskrr/breizhsport-cart:develop
     ports:
-      - 4001:4001
+      - "4001:4001"
     environment:
       NODE_ENV: test
       PORT: 4001
@@ -54,7 +63,7 @@ services:
   product-service:
     image: mathiskrr/breizhsport-product:develop
     ports:
-      - 4002:4002
+      - "4002:4002"
     environment:
       NODE_ENV: test
       PORT: 4002
@@ -68,7 +77,7 @@ services:
   category-service:
     image: mathiskrr/breizhsport-category:develop
     ports:
-      - 4003:4003
+      - "4003:4003"
     environment:
       NODE_ENV: test
       PORT: 4003
@@ -80,9 +89,10 @@ services:
     restart: unless-stopped
 
   auth-service:
-    image: mathiskrr/breizhsport-auth:develop
+    build:
+      context: ../breizhsport-auth
     ports:
-      - 4004:4004
+      - "4004:4004"
     environment:
       NODE_ENV: test
       PORT: 4004
@@ -94,7 +104,6 @@ services:
       JWT_SECRET: 9f4c2e7b1a8d6c5f0e3b9a1c7d4e8f2b6a9c3d1e5f7a8b2c4d6e9f1a3b5c7d8
     restart: unless-stopped
 
-  # Prometheus - Collecte de métriques
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -103,13 +112,12 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
 
-  # Grafana - Dashboard d'observabilité
   grafana:
     image: grafana/grafana:latest
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
     depends_on:
       - prometheus
     restart: unless-stopped
