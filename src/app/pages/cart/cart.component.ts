@@ -69,7 +69,9 @@ export class CartComponent implements OnInit {
 
   removeItem(index: number) {
     const item = this.cartItems[index];
-    this.apiService.removeFromCart(item.productId).subscribe( // ✅ Correction ici
+    console.log("Tentative de suppression de l'article :", item); // 🔍 Vérifier l'ID passé
+  
+    this.apiService.removeFromCart(item.id).subscribe(
       () => {
         this.cartItems.splice(index, 1);
         this.calculateTotalPrice();
@@ -79,6 +81,7 @@ export class CartComponent implements OnInit {
       }
     );
   }
+  
 
   clearCart() {
     this.apiService.clearCart().subscribe(

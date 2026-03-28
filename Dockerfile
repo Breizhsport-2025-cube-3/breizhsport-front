@@ -1,64 +1,61 @@
 # syntax=docker/dockerfile:1
 
-ARG NODE_VERSION=22.11.0
+ARG NODE_VERSION=20
 
 ################################################################################
-# Use node image for base image for all stages.
-FROM node:${NODE_VERSION}-alpine AS base
+# 1. Build Stage: Compile l'application Angular
+################################################################################
+FROM node:${NODE_VERSION}-alpine AS build
 
-# Set working directory for all build stages.
 WORKDIR /usr/src/app
 
-################################################################################
-# Create a stage for installing production dependencies.
-FROM base AS deps
+# Copier les fichiers de dépendances d'abord (meilleur cache Docker)
+COPY package.json package-lock.json ./
 
-# Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a cache mount to /root/.npm to speed up subsequent builds.
-# Leverage bind mounts to package.json and package-lock.json to avoid having to copy them
-# into this layer.
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev
+# Installer les dépendances
+RUN npm ci --ignore-scripts
 
-################################################################################
-# Create a stage for building the application.
-FROM deps AS build
-
-# Download additional development dependencies before building, as some projects require
-# "devDependencies" to be installed to build. If you don't need this, remove this step.
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci
-
-# Copy the rest of the source files into the image.
+# Copier le code source
 COPY . .
-# Run the build script.
+
+# Construire l'application Angular en mode production
 RUN npm run build
 
 ################################################################################
-# Create a new stage to run the application with minimal runtime dependencies
-# where the necessary files are copied from the build stage.
-FROM base AS final
+# 2. Final Stage: Nginx sécurisé pour servir l'application
+################################################################################
+FROM nginx:alpine AS final
 
-# Use production node environment by default.
-ENV NODE_ENV production
+# Supprimer la configuration par défaut de nginx
+RUN rm -rf /etc/nginx/conf.d/default.conf
 
-# Run the application as a non-root user.
-USER node
+# Copier les fichiers de build Angular
+COPY --from=build /usr/src/app/dist/breizhsport-front/browser /usr/share/nginx/html/
 
-# Copy package.json so that package manager commands can be used.
-COPY package.json .
+# Copier les assets
+COPY --from=build /usr/src/app/src/assets /usr/share/nginx/html/assets
 
-# Copy the production dependencies from the deps stage and also
-# the built application from the build stage into the image.
-COPY --from=deps /usr/src/app/node_modules ./node_modules
-COPY --from=build /usr/src/app/dist ./dist
+# Copier la configuration nginx sécurisée
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose the port that the application listens on.
+# Créer un utilisateur non-root pour nginx (sécurité)
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+# Scan de sécurité - vérifier qu'aucun fichier sensible n'est exposé
+RUN rm -rf /usr/share/nginx/html/.env \
+    /usr/share/nginx/html/.git \
+    /usr/share/nginx/html/node_modules
+
+# Exposer le port
 EXPOSE 4200
 
-# Run the application.
-CMD ["npx", "ng", "serve", "--host", "0.0.0.0"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4200/health || exit 1
+
+# Lancer Nginx
+CMD ["nginx", "-g", "daemon off;"]

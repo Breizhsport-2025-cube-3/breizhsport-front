@@ -1,12 +1,3 @@
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Docker Compose reference guide at
-# https://docs.docker.com/go/compose-spec-reference/
-
-# Here the instructions define your application as a service called "server".
-# This service is built from the Dockerfile in the current directory.
-# You can add other services your application may depend on here, such as a
-# database or a cache. For examples, see the Awesome Compose repository:
-# https://github.com/docker/awesome-compose
 services:
   server:
     build:
@@ -14,38 +5,120 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - 4200:4200
+      - "4200:4200"
+    depends_on:
+      - api-gateway
+      - cart-service
+      - product-service
+      - category-service
+      - auth-service
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4200/health",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
 
-# The commented out section below is an example of how to define a PostgreSQL
-# database that your application can use. `depends_on` tells Docker Compose to
-# start the database before your application. The `db-data` volume persists the
-# database data between container restarts. The `db-password` secret is used
-# to set the database password. You must create `db/password.txt` and add
-# a password of your choosing to it before running `docker-compose up`.
-#     depends_on:
-#       db:
-#         condition: service_healthy
-#   db:
-#     image: postgres
-#     restart: always
-#     user: postgres
-#     secrets:
-#       - db-password
-#     volumes:
-#       - db-data:/var/lib/postgresql/data
-#     environment:
-#       - POSTGRES_DB=example
-#       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-#     expose:
-#       - 5432
-#     healthcheck:
-#       test: [ "CMD", "pg_isready" ]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-# volumes:
-#   db-data:
-# secrets:
-#   db-password:
-#     file: db/password.txt
+  api-gateway:
+    build:
+      context: ../breizhsport-back-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      DB_NAME: breizhsport_data
+      DB_USER: breizhsport_admin
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
+      DB_DIALECT: mysql
+      CATEGORIES_SERVICE_URL: http://category-service:4003
+      PRODUCT_SERVICE_URL: http://product-service:4002
+      CART_SERVICE_URL: http://cart-service:4001
+      AUTH_SERVICE_URL: http://auth-service:4004
+    restart: unless-stopped
 
+  cart-service:
+    image: mathiskrr/breizhsport-cart:develop
+    ports:
+      - "4001:4001"
+    environment:
+      NODE_ENV: test
+      PORT: 4001
+      DB_NAME: breizhsport_data
+      DB_USER: breizhsport_admin
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
+      DB_DIALECT: mysql
+    restart: unless-stopped
+
+  product-service:
+    image: mathiskrr/breizhsport-product:develop
+    ports:
+      - "4002:4002"
+    environment:
+      NODE_ENV: test
+      PORT: 4002
+      DB_NAME: breizhsport_data
+      DB_USER: breizhsport_admin
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
+      DB_DIALECT: mysql
+    restart: unless-stopped
+
+  category-service:
+    image: mathiskrr/breizhsport-category:develop
+    ports:
+      - "4003:4003"
+    environment:
+      NODE_ENV: test
+      PORT: 4003
+      DB_NAME: breizhsport_data
+      DB_USER: breizhsport_admin
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
+      DB_DIALECT: mysql
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ../breizhsport-auth
+    ports:
+      - "4004:4004"
+    environment:
+      NODE_ENV: test
+      PORT: 4004
+      DB_NAME: breizhsport_data
+      DB_USER: breizhsport_admin
+      DB_PASSWORD: admin2026
+      DB_HOST: mysql-breizhsport.alwaysdata.net
+      DB_DIALECT: mysql
+      JWT_SECRET: 9f4c2e7b1a8d6c5f0e3b9a1c7d4e8f2b6a9c3d1e5f7a8b2c4d6e9f1a3b5c7d8
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+    restart: unless-stopped
