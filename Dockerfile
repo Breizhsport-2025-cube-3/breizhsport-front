@@ -3,47 +3,59 @@
 ARG NODE_VERSION=20
 
 ################################################################################
-# 1️⃣ Build Stage: Compile l'application Angular
+# 1. Build Stage: Compile l'application Angular
 ################################################################################
 FROM node:${NODE_VERSION}-alpine AS build
 
-# Définir le répertoire de travail
 WORKDIR /usr/src/app
 
-# Copier les fichiers nécessaires pour installer les dépendances
+# Copier les fichiers de dépendances d'abord (meilleur cache Docker)
 COPY package.json package-lock.json ./
 
 # Installer les dépendances
-RUN npm install
+RUN npm ci --ignore-scripts
 
-# Copier le reste des fichiers (y compris les assets)
+# Copier le code source
 COPY . .
 
-# Copier les assets pour s'assurer qu'ils sont inclus dans le build
-COPY src/assets /usr/src/app/src/assets
-
-# Construire l'application Angular
-RUN npm run build --prod
+# Construire l'application Angular en mode production
+RUN npm run build
 
 ################################################################################
-# 2️⃣ Final Stage: Utiliser Nginx pour servir l'application
+# 2. Final Stage: Nginx sécurisé pour servir l'application
 ################################################################################
 FROM nginx:alpine AS final
 
-# Copier les fichiers de build Angular vers le dossier de Nginx
+# Supprimer la configuration par défaut de nginx
+RUN rm -rf /etc/nginx/conf.d/default.conf
+
+# Copier les fichiers de build Angular
 COPY --from=build /usr/src/app/dist/breizhsport-front/browser /usr/share/nginx/html/
 
-# Copier les assets (images, icônes...) vers le bon dossier de Nginx
+# Copier les assets
 COPY --from=build /usr/src/app/src/assets /usr/share/nginx/html/assets
 
-# Modifier les permissions pour éviter les erreurs d'accès
-RUN chown -R nginx:nginx /usr/share/nginx/html
-
-# Copier un fichier de configuration Nginx personnalisé
+# Copier la configuration nginx sécurisée
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Exposer le port 80 (ou 4200 si nécessaire)
-EXPOSE 80
+# Créer un utilisateur non-root pour nginx (sécurité)
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
+
+# Scan de sécurité - vérifier qu'aucun fichier sensible n'est exposé
+RUN rm -rf /usr/share/nginx/html/.env \
+    /usr/share/nginx/html/.git \
+    /usr/share/nginx/html/node_modules
+
+# Exposer le port
+EXPOSE 4200
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4200/health || exit 1
 
 # Lancer Nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -38,4 +38,19 @@ header {
   .nav-link:hover {
     text-decoration: underline;
   }
+
+  .user-greeting {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-style: italic;
+    cursor: default;
+  }
+
+  .logout-link {
+    cursor: pointer;
+    color: #ffc107 !important;
+  }
+
+  .logout-link:hover {
+    color: #fff !important;
+  }
   

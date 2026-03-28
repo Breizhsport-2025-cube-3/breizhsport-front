@@ -1,4 +1,4 @@
-name: Cypress Tests
+name: CI - Tests & Quality
 
 on:
   push:
@@ -11,163 +11,203 @@ on:
       - dev
 
 jobs:
-  cypress-tests:
+  # Job 1: Code Quality & Unit Tests
+  quality-and-unit-tests:
     runs-on: ubuntu-22.04
-    services:
-      server:
-        image: mathiskrr/breizhsport-front:develop
-        env:
-          CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL}}
-          PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL}}
-          CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL}}
-        ports:
-          - 4200:4200
-      api-gateway:
-        image : mathiskrr/breizhsport-api-gateway:develop
-        env:
-          DB_NAME: ${{secrets.DB_NAME}}
-          DB_USER: ${{secrets.DB_USER}}
-          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
-          DB_HOST: ${{secrets.DB_HOST}}
-          DB_DIALECT: ${{secrets.DB_DIALECT}}
-          CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}
-          PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL_LOCAL}}
-          CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL_LOCAL}}
-        ports:
-          - 3000:3000
-      cart-service:
-        image : mathiskrr/breizhsport-cart:develop
-        env:
-          DB_NAME: ${{secrets.DB_NAME}}
-          DB_USER: ${{secrets.DB_USER}}
-          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
-          DB_HOST: ${{secrets.DB_HOST}}
-          DB_DIALECT: ${{secrets.DB_DIALECT}}
-        ports:
-          - 4001:4001
-      product-service:
-        image : mathiskrr/breizhsport-product:develop
-        env:
-          DB_NAME: ${{secrets.DB_NAME}}
-          DB_USER: ${{secrets.DB_USER}}
-          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
-          DB_HOST: ${{secrets.DB_HOST}}
-          DB_DIALECT: ${{secrets.DB_DIALECT}}
-        ports:
-          - 4002:4002
-      categorie-service:
-        image : mathiskrr/breizhsport-category:develop
-        env:
-          DB_NAME: ${{secrets.DB_NAME}}
-          DB_USER: ${{secrets.DB_USER}}
-          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
-          DB_HOST: ${{secrets.DB_HOST}}
-          DB_DIALECT: ${{secrets.DB_DIALECT}}
-        ports:
-          - 4003:4003
-      
     steps:
-      # Étape 1 : Checkout du code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Étape 2 : Créer un fichier .env pour Docker Compose.
-      - name: Create .env file for Docker Compose
-        run: |
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_DIALECT=${{ secrets.DB_DIALECT }}" >> .env
-          echo "CATEGORIES_SERVICE_URL=${{secrets.CATEGORIES_SERVICE_URL}}" >> .env
-          echo "PRODUCT_SERVICE_URL=${{secrets.PRODUCT_SERVICE_URL}}" >> .env
-          echo "CART_SERVICE_URL=${{secrets.CART_SERVICE_URL}}" >> .env
-          echo "CATEGORIES_SERVICE_URL_LOCAL=${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}" >> .env
-          echo "PRODUCT_SERVICE_URL_LOCAL=${{secrets.PRODUCT_SERVICE_URL_LOCAL}}" >> .env
-          echo "CART_SERVICE_URL_LOCAL=${{secrets.CART_SERVICE_URL_LOCAL}}" >> .env
-          echo "DOCKER_PAT=${{secrets.DOCKER_PAT}}" >> .env
-          echo "DOCKER_USERNAME=${{secrets.DOCKER_USERNAME}}" >> .env
-
-      # Étape 3 : Configurer Docker Buildx pour Docker Compose
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # Étape 5 : Vérifier les conteneurs Docker en cours d'exécution
-      - name: Check running Docker containers
-        run: docker ps
-
-      # Étape 6 : Vérifier les conteneurs stoppés pour diagnostiquer les erreurs
-      - name: Check all Docker containers (including stopped)
-        run: docker ps -a
-
-      # Étape 7 : Afficher les logs Docker Compose pour diagnostiquer
-      - name: Check Docker Compose Logs
-        run: docker compose logs
-
-      # Étape 10 : Configuration de Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
+          cache: 'npm'
 
-      # Étape 11 : Nettoyer node_modules et package-lock.json
-      - name: Clean Node Modules
-        run: |
-          rm -rf node_modules
-          rm -f package-lock.json
-
-      # Étape 12 : Créer le dossier videos dans le bon emplacement
-      # - name: Create videos directory
-      #   run: mkdir -p breizhsport-front/cypress/videos
-
-      # Étape 13 : Installation des dépendances
       - name: Install Dependencies
-        run: npm install --save-dev
+        run: npm ci
 
-      # Étape 14 : Installation de Cypress (sans exécution des tests)
-      # - name: Cypress E2E Install
-      #   uses: cypress-io/github-action@v6
-      #   with:
-      #     runTests: false
+      - name: Run ESLint (Code Quality Analysis)
+        run: npx ng lint --format=json > eslint-report.json || true
 
-      # # Étape 16 : Attendre que le serveur Angular soit prêt avec un timeout
-      # - name: Wait for Frontend to be ready
-      #   run: npx wait-on http://localhost:4200 --timeout=60000
+      - name: Run Unit Tests with Coverage
+        run: npx ng test --watch=false --code-coverage --browsers=ChromeHeadless
 
-      # Étape 17 : Exécuter les tests Cypress
-      # - name: Run Cypress Tests
-      #   uses: cypress-io/github-action@v6
-      #   with:
-      #     install: false
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 5
 
-      # Étape 18 : Vérifier si les artefacts existent.
-      # - name: Check if artifacts exist
-      #   id: check-artifacts
-      #   run: |
-      #     if [ -d "breizhsport-front/cypress/videos" ] || [ -d "breizhsport-front/cypress/screenshots" ]; then
-      #       echo "artifacts_exist=true" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "artifacts_exist=false" >> $GITHUB_OUTPUT
-      #     fi
+      - name: Upload ESLint Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eslint-report
+          path: eslint-report.json
+          retention-days: 5
 
-      # # Étape 19 : Téléverser les artefacts (vidéos, screenshots, etc.)
-      # - name: Upload Cypress Artifacts
+  # Job 2: Build Verification
+  build:
+    runs-on: ubuntu-22.04
+    needs: [quality-and-unit-tests]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: cypress-artifacts
-      #     path: |
-      #       breizhsport-front/cypress/videos
-      #       breizhsport-front/cypress/screenshots
-      #     retention-days: 3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
 
-      # Étape 20 : Arrêter et nettoyer les conteneurs Docker après les tests..
-      # - name: Shutdown Docker Containers
+      - name: Install Dependencies
+        run: npm ci
 
-      #   run: docker compose --env-file .env -f compose.yaml down
+      - name: Build Production
+        run: npm run build
 
+      - name: Verify Build Output
+        run: |
+          ls -la dist/breizhsport-front/browser/
+          echo "Build successful - checking bundle sizes..."
+          du -sh dist/breizhsport-front/browser/*
+
+  # =========================================================================
+  # Jobs ci-dessous désactivés temporairement (nécessitent les microservices)
+  # Ils seront réactivés une fois les images Docker disponibles.
+  # =========================================================================
+
+  # Job 3: E2E Tests with Cypress (nécessite les microservices Docker)
+  # e2e-tests:
+  #   runs-on: ubuntu-22.04
+  #   needs: [build]
+  #   continue-on-error: true
+  #   services:
+  #     server:
+  #       image: mathiskrr/breizhsport-front:develop
+  #       env:
+  #         CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL}}
+  #         PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL}}
+  #         CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL}}
+  #       ports:
+  #         - 4200:4200
+  #     api-gateway:
+  #       image: mathiskrr/breizhsport-api-gateway:develop
+  #       env:
+  #         DB_NAME: ${{secrets.DB_NAME}}
+  #         DB_USER: ${{secrets.DB_USER}}
+  #         DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+  #         DB_HOST: ${{secrets.DB_HOST}}
+  #         DB_DIALECT: ${{secrets.DB_DIALECT}}
+  #         CATEGORIES_SERVICE_URL: ${{secrets.CATEGORIES_SERVICE_URL_LOCAL}}
+  #         PRODUCT_SERVICE_URL: ${{secrets.PRODUCT_SERVICE_URL_LOCAL}}
+  #         CART_SERVICE_URL: ${{secrets.CART_SERVICE_URL_LOCAL}}
+  #       ports:
+  #         - 3000:3000
+  #     cart-service:
+  #       image: mathiskrr/breizhsport-cart:develop
+  #       env:
+  #         DB_NAME: ${{secrets.DB_NAME}}
+  #         DB_USER: ${{secrets.DB_USER}}
+  #         DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+  #         DB_HOST: ${{secrets.DB_HOST}}
+  #         DB_DIALECT: ${{secrets.DB_DIALECT}}
+  #       ports:
+  #         - 4001:4001
+  #     product-service:
+  #       image: mathiskrr/breizhsport-product:develop
+  #       env:
+  #         DB_NAME: ${{secrets.DB_NAME}}
+  #         DB_USER: ${{secrets.DB_USER}}
+  #         DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+  #         DB_HOST: ${{secrets.DB_HOST}}
+  #         DB_DIALECT: ${{secrets.DB_DIALECT}}
+  #       ports:
+  #         - 4002:4002
+  #     categorie-service:
+  #       image: mathiskrr/breizhsport-category:develop
+  #       env:
+  #         DB_NAME: ${{secrets.DB_NAME}}
+  #         DB_USER: ${{secrets.DB_USER}}
+  #         DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+  #         DB_HOST: ${{secrets.DB_HOST}}
+  #         DB_DIALECT: ${{secrets.DB_DIALECT}}
+  #       ports:
+  #         - 4003:4003
+  #
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20.x
+  #         cache: 'npm'
+  #
+  #     - name: Install Dependencies
+  #       run: npm ci
+  #
+  #     - name: Wait for Frontend to be ready
+  #       run: npx wait-on http://localhost:4200 --timeout=60000
+  #
+  #     - name: Run Cypress E2E Tests
+  #       uses: cypress-io/github-action@v6
+  #       with:
+  #         install: false
+  #
+  #     - name: Upload Cypress Artifacts
+  #       uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: cypress-artifacts
+  #         path: |
+  #           cypress/videos
+  #           cypress/screenshots
+  #         retention-days: 5
+
+  # Job 4: Security Scan (OWASP ZAP) - nécessite le frontend Docker
+  # security-scan:
+  #   runs-on: ubuntu-22.04
+  #   needs: [build]
+  #   continue-on-error: true
+  #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+  #   services:
+  #     server:
+  #       image: mathiskrr/breizhsport-front:develop
+  #       ports:
+  #         - 4200:4200
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Wait for Frontend
+  #       run: |
+  #         for i in $(seq 1 30); do
+  #           curl -s http://localhost:4200 > /dev/null && break || sleep 2
+  #         done
+  #
+  #     - name: Run OWASP ZAP Baseline Scan
+  #       uses: zaproxy/action-baseline@v0.12.0
+  #       with:
+  #         target: 'http://localhost:4200'
+  #         rules_file_name: 'reports/zap.yaml'
+  #         cmd_options: '-a'
+  #
+  #     - name: Upload ZAP Report
+  #       uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: zap-security-report
+  #         path: report_html.html
+  #         retention-days: 10
+
+  # Job 5: Docker Publish (main branch only)
   publish-on-docker:
-    needs: [cypress-tests]
+    needs: [quality-and-unit-tests, build]
     if: github.ref == 'refs/heads/main'
     uses: Breizhsport-2025-cube-3/breizhsport-infra/.github/workflows/publish_on_docker.yml@main
     secrets:
