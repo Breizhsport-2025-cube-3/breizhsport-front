@@ -8,11 +8,15 @@ import { LoggingService } from './logging.service';
 export interface User {
   id: number;
   email: string;
-  username: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
 }
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   user: User;
 }
 
@@ -23,6 +27,7 @@ export class AuthService {
   private apiUrl = 'http://127.0.0.1:3000/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenKey = 'breizhsport_token';
+  private refreshTokenKey = 'breizhsport_refresh_token';
   private userKey = 'breizhsport_user';
 
   currentUser$ = this.currentUserSubject.asObservable();
@@ -57,9 +62,10 @@ export class AuthService {
       .post<AuthResponse>(`${this.apiUrl}/login`, { email, password })
       .pipe(
         tap((response) => {
-          this.storeAuth(response);
+          const normalized = this.normalizeAuthResponse(response);
+          this.storeAuth(normalized);
           this.logger.info('AuthService', 'Login successful', {
-            userId: response.user.id,
+            userId: normalized.user.id,
           });
         }),
         catchError((error) => {
@@ -93,9 +99,14 @@ export class AuthService {
       .post<AuthResponse>(`${this.apiUrl}/register`, payload)
       .pipe(
         tap((response) => {
-          this.storeAuth(response);
+          const normalized = this.normalizeAuthResponse(
+            response,
+            userData.firstName,
+            userData.lastName,
+          );
+          this.storeAuth(normalized);
           this.logger.info('AuthService', 'Registration successful', {
-            userId: response.user.id,
+            userId: normalized.user.id,
           });
         }),
         catchError((error) => {
@@ -116,6 +127,10 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  refreshAccessToken(): Observable<AuthResponse> {
+    return throwError(() => new Error('Refresh token not implemented'));
+  }
+
   isAuthenticated(): boolean {
     const token = this.getToken();
     if (!token) return false;
@@ -132,18 +147,59 @@ export class AuthService {
     return localStorage.getItem(this.tokenKey);
   }
 
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.refreshTokenKey);
+  }
+
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === role;
+  }
+
+  private normalizeAuthResponse(
+    response: AuthResponse,
+    firstName?: string,
+    lastName?: string,
+  ): AuthResponse {
+    const username = response.user?.username ?? '';
+    const derivedFirstName = firstName ?? username.split(' ')[0] ?? '';
+    const derivedLastName =
+      lastName ?? username.split(' ').slice(1).join(' ') ?? '';
+
+    return {
+      token: response.token,
+      refreshToken: response.refreshToken ?? '',
+      user: {
+        id: response.user.id,
+        email: response.user.email,
+        username,
+        firstName: response.user.firstName ?? derivedFirstName,
+        lastName: response.user.lastName ?? derivedLastName,
+        role: response.user.role ?? 'user',
+      },
+    };
+  }
+
   private storeAuth(response: AuthResponse): void {
     localStorage.setItem(this.tokenKey, response.token);
+
+    if (response.refreshToken) {
+      localStorage.setItem(this.refreshTokenKey, response.refreshToken);
+    } else {
+      localStorage.removeItem(this.refreshTokenKey);
+    }
+
     localStorage.setItem(this.userKey, JSON.stringify(response.user));
     this.currentUserSubject.next(response.user);
   }
 
   private clearAuth(): void {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
   }

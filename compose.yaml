@@ -1,6 +1,7 @@
 services:
   server:
-    image: mathiskrr/breizhsport-front:develop
+    build:
+      context: .
     environment:
       NODE_ENV: production
     ports:
